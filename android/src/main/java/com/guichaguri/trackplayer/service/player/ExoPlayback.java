@@ -62,6 +62,8 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
 
     public abstract void add(Collection<Track> tracks, int index, Promise promise);
 
+    public abstract void move(int index, int newIndex, Promise promise);
+
     public abstract void remove(List<Integer> indexes, Promise promise);
 
     public abstract void removeUpcomingTracks();
@@ -80,24 +82,16 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
         return index < 0 || index >= queue.size() ? null : queue.get(index);
     }
 
-    public void skip(String id, Promise promise) {
-        if(id == null || id.isEmpty()) {
-            promise.reject("invalid_id", "The ID can't be null or empty");
-            return;
-        }
+    public int getCurrentTrackIndex() {
+        return player.getCurrentWindowIndex();
+    }
 
-        for(int i = 0; i < queue.size(); i++) {
-            if(id.equals(queue.get(i).id)) {
-                lastKnownWindow = player.getCurrentWindowIndex();
-                lastKnownPosition = player.getCurrentPosition();
+    public void skip(int index, Promise promise) {
+        lastKnownWindow = player.getCurrentWindowIndex();
+        lastKnownPosition = player.getCurrentPosition();
 
-                player.seekToDefaultPosition(i);
-                promise.resolve(null);
-                return;
-            }
-        }
-
-        promise.reject("track_not_in_queue", "Given track ID was not found in queue");
+        player.seekToDefaultPosition(index);
+        promise.resolve(null);
     }
 
     public void skipToPrevious(Promise promise) {

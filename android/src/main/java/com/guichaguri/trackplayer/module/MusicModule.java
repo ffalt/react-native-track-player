@@ -186,7 +186,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void add(ReadableArray tracks, final String insertBeforeId, final Promise callback) {
+    public void add(ReadableArray tracks, Integer insertBeforeIndex, final Promise callback) {
         final ArrayList bundleList = Arguments.toList(tracks);
 
         waitForConnection(() -> {
@@ -202,20 +202,13 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
             List<Track> queue = binder.getPlayback().getQueue();
             int index = -1;
 
-            if(insertBeforeId != null) {
-                for(int i = 0; i < queue.size(); i++) {
-                    if(queue.get(i).id.equals(insertBeforeId)) {
-                        index = i;
-                        break;
-                    }
-                }
+            if(insertBeforeIndex != null && insertBeforeIndex >= 0) {
+                index = insertBeforeIndex;
             } else {
                 index = queue.size();
             }
 
-            if(index == -1) {
-                callback.reject("track_not_in_queue", "Given track ID was not found in queue");
-            } else if(trackList == null || trackList.isEmpty()) {
+            if(trackList == null || trackList.isEmpty()) {
                 callback.reject("invalid_track_object", "Track is missing a required key");
             } else if(trackList.size() == 1) {
                 binder.getPlayback().add(trackList.get(0), index, callback);
@@ -226,24 +219,10 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void remove(ReadableArray tracks, final Promise callback) {
-        final ArrayList trackList = Arguments.toList(tracks);
+    public void remove(ReadableArray index, final Promise callback) {
+        final ArrayList indexes = Arguments.toList(index);
 
         waitForConnection(() -> {
-            List<Track> queue = binder.getPlayback().getQueue();
-            List<Integer> indexes = new ArrayList<>();
-
-            for(Object o : trackList) {
-                String id = o.toString();
-
-                for(int i = 0; i < queue.size(); i++) {
-                    if(queue.get(i).id.equals(id)) {
-                        indexes.add(i);
-                        break;
-                    }
-                }
-            }
-
             if (!indexes.isEmpty()) {
                 binder.getPlayback().remove(indexes, callback);
             } else {
@@ -253,23 +232,12 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void updateMetadataForTrack(String id, ReadableMap map, final Promise callback) {
+    public void updateMetadataForTrack(int index, ReadableMap map, final Promise callback) {
         waitForConnection(() -> {
             ExoPlayback playback = binder.getPlayback();
             List<Track> queue = playback.getQueue();
-            Track track = null;
-            int index = -1;
-
-            for(int i = 0; i < queue.size(); i++) {
-                track = queue.get(i);
-
-                if(track.id.equals(id)) {
-                    index = i;
-                    break;
-                }
-            }
-
-            if(index == -1) {
+            Track track =  queue.get(index);
+            if(track == null) {
                 callback.reject("track_not_in_queue", "No track found");
             } else {
                 track.setMetadata(getReactApplicationContext(), Arguments.toBundle(map), binder.getRatingType());
@@ -288,8 +256,8 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void skip(final String track, final Promise callback) {
-        waitForConnection(() -> binder.getPlayback().skip(track, callback));
+    public void skip(final Integer index, final Promise callback) {
+        waitForConnection(() -> binder.getPlayback().skip(index, callback));
     }
 
     @ReactMethod
@@ -386,6 +354,39 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
+    public void getTrackAt(final int index, final Promise callback) {
+        waitForConnection(() -> {
+            List<Track> tracks = binder.getPlayback().getQueue();
+            Track track = tracks.get(index);
+            if(track != null) {
+                callback.resolve(Arguments.fromBundle(track.originalItem));
+                return;
+            }
+
+            callback.resolve(null);
+        });
+    }
+
+    @ReactMethod
+    public void move(int index, int newIndex, final Promise callback) {
+        waitForConnection(() -> {
+            ExoPlayback playback = binder.getPlayback();
+            int size = playback.getQueue().size();
+            Integer currentIndex = playback.getCurrentTrackIndex();
+
+            if (index < 0 || index >= size) {
+                callback.reject("index_out_of_bounds", "The track index is out of bounds");
+            } else if (newIndex < 0 || newIndex >= size) {
+                callback.reject("index_out_of_bounds", "The new index is out of bounds");
+            } else if (index == currentIndex || newIndex == currentIndex) {
+                callback.reject("not_movable", "The current track cannot be moved");
+            } else {
+                playback.move(index, newIndex, callback);
+            }
+        });
+    }
+
+    @ReactMethod
     public void getQueue(Promise callback) {
         waitForConnection(() -> {
             List queue = new ArrayList();
@@ -409,6 +410,13 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
             } else {
                 callback.resolve(track.id);
             }
+        });
+    }
+
+    @ReactMethod
+    public void getCurrentTrackIndex(final Promise callback) {
+        waitForConnection(() -> {
+            callback.resolve(binder.getPlayback().getCurrentTrackIndex());
         });
     }
 

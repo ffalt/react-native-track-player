@@ -49,7 +49,7 @@ function addEventListener(event: Event, listener: (data: any) => void) {
 
 // MARK: - Queue API
 
-async function add(tracks: Track | Track[], insertBeforeId?: string): Promise<void> {
+async function add(tracks: Track | Track[], insertBeforeIndex?: number): Promise<void> {
   // Clone the array before modifying it
   if (Array.isArray(tracks)) {
     tracks = [...tracks]
@@ -70,24 +70,28 @@ async function add(tracks: Track | Track[], insertBeforeId?: string): Promise<vo
     // Cast ID's into strings
     tracks[i].id = `${tracks[i].id}`
   }
-
-  return TrackPlayer.add(tracks, insertBeforeId)
+  const index = insertBeforeIndex===undefined?-2:insertBeforeIndex;
+  return TrackPlayer.add(tracks, index)
 }
 
-async function remove(tracks: string | string[]): Promise<void> {
-  if (!Array.isArray(tracks)) {
-    tracks = [tracks]
+async function move(index: number, newIndex:number): Promise<void> {
+  return TrackPlayer.move(index, newIndex)
+}
+
+async function remove(index: number | number[]): Promise<void> {
+  if (!Array.isArray(index)) {
+    index = [index]
   }
 
-  return TrackPlayer.remove(tracks)
+  return TrackPlayer.remove(index)
 }
 
 async function removeUpcomingTracks(): Promise<void> {
   return TrackPlayer.removeUpcomingTracks()
 }
 
-async function skip(trackId: string): Promise<void> {
-  return TrackPlayer.skip(trackId)
+async function skip(index: number): Promise<void> {
+  return TrackPlayer.skip(index)
 }
 
 async function skipToNext(): Promise<void> {
@@ -116,8 +120,8 @@ async function updateOptions(options: MetadataOptions = {}): Promise<void> {
   return TrackPlayer.updateOptions(options)
 }
 
-async function updateMetadataForTrack(trackId: string, metadata: TrackMetadataBase): Promise<void> {
-  return TrackPlayer.updateMetadataForTrack(trackId, metadata)
+async function updateMetadataForTrack(index: number, metadata: TrackMetadataBase): Promise<void> {
+  return TrackPlayer.updateMetadataForTrack(index, metadata)
 }
 
 function clearNowPlayingMetadata(): Promise<void> {
@@ -172,12 +176,20 @@ async function getTrack(trackId: string): Promise<Track> {
   return TrackPlayer.getTrack(trackId)
 }
 
+async function getTrackAt(index: number): Promise<Track|undefined> {
+  return TrackPlayer.getTrackAt(index)
+}
+
 async function getQueue(): Promise<Track[]> {
   return TrackPlayer.getQueue()
 }
 
 async function getCurrentTrack(): Promise<string> {
   return TrackPlayer.getCurrentTrack()
+}
+
+async function getCurrentTrackIndex(): Promise<number> {
+  return TrackPlayer.getCurrentTrackIndex()
 }
 
 async function getDuration(): Promise<number> {
@@ -205,6 +217,7 @@ export default {
 
   // MARK: - Queue API
   add,
+  move,
   remove,
   removeUpcomingTracks,
   skip,
@@ -230,8 +243,10 @@ export default {
   getVolume,
   getRate,
   getTrack,
+  getTrackAt,
   getQueue,
   getCurrentTrack,
+  getCurrentTrackIndex,
   getDuration,
   getBufferedPosition,
   getPosition,
