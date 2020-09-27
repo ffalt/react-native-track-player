@@ -36,9 +36,8 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
     private ConcatenatingMediaSource source;
     private boolean prepared = false;
 
-    public LocalPlayback(Context context, MusicManager manager, SimpleExoPlayer player, long maxCacheSize,
-                         boolean autoUpdateMetadata) {
-        super(context, manager, player, autoUpdateMetadata);
+    public LocalPlayback(Context context, MusicManager manager, SimpleExoPlayer player, long maxCacheSize) {
+        super(context, manager, player);
         this.cacheMaxSize = maxCacheSize;
     }
 
@@ -117,11 +116,6 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
                 source.removeMediaSource(index, manager.getHandler(), Utils.toRunnable(promise));
             } else {
                 source.removeMediaSource(index);
-            }
-
-            // Fix the window index
-            if (index < lastKnownWindow) {
-                lastKnownWindow--;
             }
         }
     }
