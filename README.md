@@ -11,4 +11,4 @@ Cherry Picked:
 * Updated ExoPlayer to 2.11.4 [via](https://github.com/react-native-kit/react-native-track-player/pull/1035)
 * New Service Function: isServiceRunning [via](https://github.com/react-native-kit/react-native-track-player/pull/725)
 * Shuffle & Repeat Mode [via](https://github.com/react-native-kit/react-native-track-player/pull/912/files)
-
+* reporting last track changed on android [via](https://github.com/react-native-kit/react-native-track-player/pull/910/files)
