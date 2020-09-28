@@ -102,6 +102,10 @@ async function skipToPrevious(): Promise<void> {
   return TrackPlayer.skipToPrevious()
 }
 
+async function shuffle(): Promise<void> {
+  return TrackPlayer.shuffle()
+}
+
 async function isServiceRunning(): Promise<boolean> {
   return TrackPlayer.isServiceRunning()
 }
@@ -212,22 +216,34 @@ async function getState(): Promise<State> {
   return TrackPlayer.getState()
 }
 
+async function setRepeatMode(repeatMode:number): Promise<void> {
+  TrackPlayer.setRepeatMode(repeatMode);
+}
+
+async function getRepeatMode(): Promise<number> {
+  return TrackPlayer.getRepeatMode();
+}
+
+
 export default {
   // MARK: - General API
   setupPlayer,
   destroy,
   registerPlaybackService,
   addEventListener,
-  isServiceRunning
+  isServiceRunning,
 
   // MARK: - Queue API
   add,
   move,
   remove,
   removeUpcomingTracks,
+  shuffle,
   skip,
   skipToNext,
   skipToPrevious,
+  getRepeatMode,
+  setRepeatMode,
 
   // MARK: - Control Center / Notifications API
   updateOptions,

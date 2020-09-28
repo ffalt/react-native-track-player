@@ -12,6 +12,8 @@ import android.util.Log;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.facebook.react.bridge.*;
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.Player;
+import com.guichaguri.trackplayer.service.MusicBinder;
 import com.guichaguri.trackplayer.service.MusicBinder;
 import com.guichaguri.trackplayer.service.MusicService;
 import com.guichaguri.trackplayer.service.Utils;
@@ -147,6 +149,11 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
         constants.put("RATING_4_STARS", RatingCompat.RATING_4_STARS);
         constants.put("RATING_5_STARS", RatingCompat.RATING_5_STARS);
         constants.put("RATING_PERCENTAGE", RatingCompat.RATING_PERCENTAGE);
+
+        // Repeat Modes
+        constants.put("REPEAT_OFF", Player.REPEAT_MODE_OFF);
+        constants.put("REPEAT_TRACK", Player.REPEAT_MODE_ONE);
+        constants.put("REPEAT_QUEUE", Player.REPEAT_MODE_ALL);
 
         return constants;
     }
@@ -368,6 +375,27 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
                 return;
             }
 
+            callback.resolve(null);
+        });
+    }
+
+    @ReactMethod
+    public void setRepeatMode(int mode, final Promise callback) {
+        waitForConnection(() -> {
+            binder.getPlayback().setRepeatMode(mode);
+            callback.resolve(null);
+        });
+    }
+
+    @ReactMethod
+    public void getRepeatMode(int mode, final Promise callback) {
+        waitForConnection(() -> callback.resolve(binder.getPlayback().getRepeatMode()));
+    }
+
+    @ReactMethod
+    public void shuffle(final Promise callback) {
+        waitForConnection(() -> {
+            binder.getPlayback().shuffle(callback);
             callback.resolve(null);
         });
     }

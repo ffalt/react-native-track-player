@@ -11,6 +11,7 @@ import com.google.android.exoplayer2.database.DatabaseProvider;
 import com.google.android.exoplayer2.database.ExoDatabaseProvider;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ShuffleOrder;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory;
@@ -20,10 +21,7 @@ import com.guichaguri.trackplayer.service.MusicManager;
 import com.guichaguri.trackplayer.service.Utils;
 import com.guichaguri.trackplayer.service.models.Track;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Guichaguri
@@ -77,6 +75,7 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
         source.addMediaSource(index, trackSource, manager.getHandler(), Utils.toRunnable(promise));
 
         prepare();
+        manager.onQueueChange();
     }
 
     @Override
@@ -91,12 +90,52 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
         source.addMediaSources(index, trackList, manager.getHandler(), Utils.toRunnable(promise));
 
         prepare();
-    }
+        manager.onQueueChange();
+   }
 
     @Override
     public void move(int index, int newIndex, Promise promise) {
         Collections.swap(queue, index, newIndex);
         source.moveMediaSource(index, newIndex, manager.getHandler(), Utils.toRunnable(promise));
+         manager.onQueueChange();
+   }
+
+    @Override
+    public void shuffle(final Promise promise) {
+        Random rand = new Random();
+        int startIndex = player.getCurrentWindowIndex();
+        int length = queue.size();
+
+        if (startIndex == C.INDEX_UNSET) {
+            startIndex = 0;
+        } else {
+            startIndex++;
+        }
+
+        // Fisher-Yates shuffle
+        for (int i = startIndex; i < length; i++) {
+            int swapIndex = rand.nextInt(i + 1 - startIndex) + startIndex;
+
+            Collections.swap(queue, i, swapIndex);
+
+            if (length - 1 == i) {
+                // Resolve the promise after the last move command
+                source.moveMediaSource(i, swapIndex, manager.getHandler(), Utils.toRunnable(promise));
+            } else {
+                source.moveMediaSource(i, swapIndex);
+            }
+        }
+        manager.onQueueChange();
+    }
+
+    @Override
+    public void setRepeatMode(int repeatMode) {
+        player.setRepeatMode(repeatMode);
+    }
+
+    @Override
+    public int getRepeatMode() {
+        return player.getRepeatMode();
     }
 
     @Override
@@ -124,6 +163,7 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
                 source.removeMediaSource(index);
             }
         }
+        manager.onQueueChange();
     }
 
     @Override
@@ -135,7 +175,8 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
             queue.remove(i);
             source.removeMediaSource(i);
         }
-    }
+        manager.onQueueChange();
+   }
 
     private void resetQueue() {
         queue.clear();
@@ -146,8 +187,8 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
 
         lastKnownWindow = C.INDEX_UNSET;
         lastKnownPosition = C.POSITION_UNSET;
-
         manager.onReset();
+        manager.onQueueChange();
     }
 
     @Override
