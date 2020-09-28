@@ -7,7 +7,7 @@ export const usePlaybackState = () => {
   const [state, setState] = useState(State.None)
 
   useEffect(() => {
-    let isSubscribed = true;
+    let isSubscribed = true
 
     async function setPlayerState() {
       const playerState = await TrackPlayer.getState()
@@ -25,7 +25,7 @@ export const usePlaybackState = () => {
     })
 
     return () => {
-      isSubscribed = false;
+      isSubscribed = false
       sub.remove()
     }
   }, [])
@@ -49,31 +49,31 @@ export const useTrackPlayerEvents = (events: Event[], handler: Handler) => {
   }, [handler])
 
   useEffect(() => {
-    if (__DEV__) {
-      const allowedTypes = Object.values(Event)
-      const invalidTypes = events.filter(type => !allowedTypes.includes(type))
-      if (invalidTypes.length) {
-        console.warn(
-          'One or more of the events provided to useTrackPlayerEvents is ' +
-            `not a valid TrackPlayer event: ${invalidTypes.join("', '")}. ` +
-            'A list of available events can be found at ' +
-            'https://react-native-kit.github.io/react-native-track-player/documentation/#events',
-        )
-      }
-    }
-    let isSubscribed = true;
+    // if (__DEV__) {
+    //   const allowedTypes = Object.values(Event)
+    //   const invalidTypes = events.filter(type => !allowedTypes.includes(type))
+    //   if (invalidTypes.length) {
+    //     console.warn(
+    //       'One or more of the events provided to useTrackPlayerEvents is ' +
+    //         `not a valid TrackPlayer event: ${invalidTypes.join("', '")}. ` +
+    //         'A list of available events can be found at ' +
+    //         'https://react-native-kit.github.io/react-native-track-player/documentation/#events',
+    //     )
+    //   }
+    // }
+    let isSubscribed = true
 
     const subs = events.map(event =>
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       TrackPlayer.addEventListener(event, payload => {
-        if (isSubscribed) {
-          savedHandler.current!({ ...payload, type: event })
+        if (isSubscribed && savedHandler?.current) {
+          savedHandler.current({ ...payload, type: event })
         }
-      })
+      }),
     )
 
     return () => {
-      isSubscribed = false;
+      isSubscribed = false
       subs.forEach(sub => sub.remove())
     }
   }, events)
@@ -88,10 +88,10 @@ export function useProgress(updateInterval?: number) {
   const playerState = usePlaybackState()
 
   useEffect(() => {
-    let isSubscribed = true;
+    let isSubscribed = true
     if (playerState === State.Stopped) {
-      setState({ position: 0, duration: 0, buffered: 0 });
-      return;
+      setState({ position: 0, duration: 0, buffered: 0 })
+      return
     }
     if (playerState !== State.Playing && playerState !== State.Buffering) return
 
@@ -108,7 +108,7 @@ export function useProgress(updateInterval?: number) {
 
     const poll = setInterval(getProgress, updateInterval || 1000)
     return () => {
-      isSubscribed = false;
+      isSubscribed = false
       clearInterval(poll)
     }
   }, [playerState])

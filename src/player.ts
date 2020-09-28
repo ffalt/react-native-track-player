@@ -8,7 +8,8 @@ import {
   Track,
   State,
   TrackMetadataBase,
-  NowPlayingMetadata, RepeatMode,
+  NowPlayingMetadata,
+  RepeatMode,
 } from './interfaces'
 
 const { TrackPlayerModule: TrackPlayer } = NativeModules
@@ -70,11 +71,11 @@ async function add(tracks: Track | Track[], insertBeforeIndex?: number): Promise
     // Cast ID's into strings
     tracks[i].id = `${tracks[i].id}`
   }
-  const index = insertBeforeIndex===undefined?-2:insertBeforeIndex;
+  const index = insertBeforeIndex === undefined ? -2 : insertBeforeIndex
   return TrackPlayer.add(tracks, index)
 }
 
-async function move(index: number, newIndex:number): Promise<void> {
+async function move(index: number, newIndex: number): Promise<void> {
   return TrackPlayer.move(index, newIndex)
 }
 
@@ -188,7 +189,7 @@ async function getTrack(trackId: string): Promise<Track> {
   return TrackPlayer.getTrack(trackId)
 }
 
-async function getTrackAt(index: number): Promise<Track|undefined> {
+async function getTrackAt(index: number): Promise<Track | undefined> {
   return TrackPlayer.getTrackAt(index)
 }
 
@@ -220,22 +221,21 @@ async function getState(): Promise<State> {
   return TrackPlayer.getState()
 }
 
-async function setRepeatMode(repeatMode:number): Promise<void> {
-  return TrackPlayer.setRepeatMode(repeatMode);
+async function setRepeatMode(repeatMode: number): Promise<void> {
+  return TrackPlayer.setRepeatMode(repeatMode)
 }
 
 async function getShuffleModeEnabled(): Promise<boolean> {
-  return TrackPlayer.getShuffleModeEnabled();
+  return TrackPlayer.getShuffleModeEnabled()
 }
 
-async function setShuffleModeEnabled(enabled:boolean): Promise<boolean> {
-  return TrackPlayer.setShuffleModeEnabled(enabled);
+async function setShuffleModeEnabled(enabled: boolean): Promise<boolean> {
+  return TrackPlayer.setShuffleModeEnabled(enabled)
 }
 
 async function getRepeatMode(): Promise<RepeatMode> {
-  return TrackPlayer.getRepeatMode();
+  return TrackPlayer.getRepeatMode()
 }
-
 
 export default {
   // MARK: - General API
@@ -286,5 +286,5 @@ export default {
   getDuration,
   getBufferedPosition,
   getPosition,
-  getState
+  getState,
 }
