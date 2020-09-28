@@ -152,8 +152,8 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
         // Repeat Modes
         constants.put("REPEAT_OFF", Player.REPEAT_MODE_OFF);
-        constants.put("REPEAT_TRACK", Player.REPEAT_MODE_ONE);
-        constants.put("REPEAT_QUEUE", Player.REPEAT_MODE_ALL);
+        constants.put("REPEAT_ONE", Player.REPEAT_MODE_ONE);
+        constants.put("REPEAT_ALL", Player.REPEAT_MODE_ALL);
 
         return constants;
     }
@@ -499,6 +499,30 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
             }
         });
     }
+
+    @ReactMethod
+    public void repeat(final int repeatMode, final Promise callback) {
+        waitForConnection(() -> {
+            binder.getPlayback().repeat(repeatMode);
+            callback.resolve(null);
+        });
+    }
+
+    @ReactMethod
+    public void setShuffleModeEnabled(final boolean shuffleModeEnabled, final Promise callback) {
+        waitForConnection(() -> {
+            binder.getPlayback().setShuffleModeEnabled(shuffleModeEnabled);
+            callback.resolve(null);
+        });
+    }
+
+    @ReactMethod
+    public void getShuffleModeEnabled(final Promise callback) {
+        waitForConnection(() -> {
+            callback.resolve(binder.getPlayback().getShuffleModeEnabled());
+        });
+    }
+
 
     @ReactMethod
     public void getState(final Promise callback) {

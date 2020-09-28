@@ -52,6 +52,12 @@ export interface PlayerOptions {
   autoUpdateMetadata?: boolean
 }
 
+export enum RepeatMode {
+  Off = TrackPlayer.REPEAT_OFF,
+  One = TrackPlayer.REPEAT_ONE,
+  All = TrackPlayer.REPEAT_ALL,
+}
+
 export enum RatingType {
   Heart = TrackPlayer.RATING_HEART,
   ThumbsUpDown = TrackPlayer.RATING_THUMBS_UP_DOWN,

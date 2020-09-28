@@ -130,7 +130,20 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
 
     @Override
     public void setRepeatMode(int repeatMode) {
-        player.setRepeatMode(repeatMode);
+        switch (repeatMode) {
+            case 1: {
+                player.setRepeatMode(Player.REPEAT_MODE_ONE);
+                break;
+            }
+            case 2: {
+                player.setRepeatMode(Player.REPEAT_MODE_ALL);
+                break;
+            }
+            default: {
+                player.setRepeatMode(Player.REPEAT_MODE_OFF);
+                break;
+            }
+        }
     }
 
     @Override

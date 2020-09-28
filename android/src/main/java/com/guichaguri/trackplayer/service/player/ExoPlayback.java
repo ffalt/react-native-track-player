@@ -158,6 +158,14 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
         player.setPlayWhenReady(false);
     }
 
+    public void setShuffleModeEnabled(boolean shuffleModeEnabled) {
+        player.setShuffleModeEnabled(shuffleModeEnabled);
+    }
+
+    public boolean getShuffleModeEnabled() {
+        return player.getShuffleModeEnabled();
+    }
+
     public boolean isRemote() {
         return false;
     }

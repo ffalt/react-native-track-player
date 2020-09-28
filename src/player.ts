@@ -8,7 +8,7 @@ import {
   Track,
   State,
   TrackMetadataBase,
-  NowPlayingMetadata,
+  NowPlayingMetadata, RepeatMode,
 } from './interfaces'
 
 const { TrackPlayerModule: TrackPlayer } = NativeModules
@@ -221,10 +221,18 @@ async function getState(): Promise<State> {
 }
 
 async function setRepeatMode(repeatMode:number): Promise<void> {
-  TrackPlayer.setRepeatMode(repeatMode);
+  return TrackPlayer.setRepeatMode(repeatMode);
 }
 
-async function getRepeatMode(): Promise<number> {
+async function getShuffleModeEnabled(): Promise<boolean> {
+  return TrackPlayer.getShuffleModeEnabled();
+}
+
+async function setShuffleModeEnabled(enabled:boolean): Promise<boolean> {
+  return TrackPlayer.setShuffleModeEnabled(enabled);
+}
+
+async function getRepeatMode(): Promise<RepeatMode> {
   return TrackPlayer.getRepeatMode();
 }
 
@@ -249,6 +257,8 @@ export default {
   skipToPrevious,
   getRepeatMode,
   setRepeatMode,
+  getShuffleModeEnabled,
+  setShuffleModeEnabled,
 
   // MARK: - Control Center / Notifications API
   updateOptions,
@@ -276,5 +286,5 @@ export default {
   getDuration,
   getBufferedPosition,
   getPosition,
-  getState,
+  getState
 }
