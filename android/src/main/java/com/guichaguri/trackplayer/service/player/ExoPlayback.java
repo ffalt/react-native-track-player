@@ -71,6 +71,8 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
 
     public abstract void shuffle(final Promise promise);
 
+    public abstract void clear(final Promise promise);
+
     public abstract void setRepeatMode(int repeatMode);
 
     public abstract int getRepeatMode();

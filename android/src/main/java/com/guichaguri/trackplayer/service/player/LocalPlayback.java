@@ -167,6 +167,29 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
     }
 
     @Override
+    public void clear(Promise promise) {
+        int currentIndex = player.getCurrentWindowIndex();
+
+        for (int i = queue.size() - 1; i >= 0; i--) {
+            // Skip indexes that are the current track or are out of bounds
+            if(i == currentIndex) {
+                // Resolve the promise when the last index is invalid
+                if(i == 0) promise.resolve(null);
+                continue;
+            }
+
+            queue.remove(i);
+
+            if(i == 0) {
+                source.removeMediaSource(i, manager.getHandler(), Utils.toRunnable(promise));
+            } else {
+                source.removeMediaSource(i);
+            }
+        }
+        manager.onQueueChange();
+    }
+
+    @Override
     public void removeUpcomingTracks() {
         int currentIndex = player.getCurrentWindowIndex();
         if (currentIndex == C.INDEX_UNSET) return;

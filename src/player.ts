@@ -106,6 +106,10 @@ async function shuffle(): Promise<void> {
   return TrackPlayer.shuffle()
 }
 
+async function clear(): Promise<void> {
+  return TrackPlayer.clear()
+}
+
 async function isServiceRunning(): Promise<boolean> {
   return TrackPlayer.isServiceRunning()
 }
@@ -238,6 +242,7 @@ export default {
   move,
   remove,
   removeUpcomingTracks,
+  clear,
   shuffle,
   skip,
   skipToNext,

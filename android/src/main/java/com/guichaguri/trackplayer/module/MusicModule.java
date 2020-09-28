@@ -401,6 +401,14 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
+    public void clear(final Promise callback) {
+        waitForConnection(() -> {
+            binder.getPlayback().clear(callback);
+            callback.resolve(null);
+        });
+    }
+
+    @ReactMethod
     public void move(int index, int newIndex, final Promise callback) {
         waitForConnection(() -> {
             ExoPlayback playback = binder.getPlayback();
