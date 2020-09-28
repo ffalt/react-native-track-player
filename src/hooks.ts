@@ -7,18 +7,25 @@ export const usePlaybackState = () => {
   const [state, setState] = useState(State.None)
 
   useEffect(() => {
+    let isSubscribed = true;
+
     async function setPlayerState() {
       const playerState = await TrackPlayer.getState()
-      setState(playerState)
+      if (isSubscribed) {
+        setState(playerState)
+      }
     }
 
     setPlayerState()
 
     const sub = TrackPlayer.addEventListener(Event.PlaybackState, data => {
-      setState(data.state)
+      if (isSubscribed) {
+        setState(data.state)
+      }
     })
 
     return () => {
+      isSubscribed = false;
       sub.remove()
     }
   }, [])
@@ -54,13 +61,19 @@ export const useTrackPlayerEvents = (events: Event[], handler: Handler) => {
         )
       }
     }
+    let isSubscribed = true;
 
     const subs = events.map(event =>
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      TrackPlayer.addEventListener(event, payload => savedHandler.current!({ ...payload, type: event })),
+      TrackPlayer.addEventListener(event, payload => {
+        if (isSubscribed) {
+          savedHandler.current!({ ...payload, type: event })
+        }
+      })
     )
 
     return () => {
+      isSubscribed = false;
       subs.forEach(sub => sub.remove())
     }
   }, events)
@@ -74,23 +87,30 @@ export function useProgress(updateInterval?: number) {
   const [state, setState] = useState({ position: 0, duration: 0, buffered: 0 })
   const playerState = usePlaybackState()
 
-  const getProgress = async () => {
-    const [position, duration, buffered] = await Promise.all([
-      TrackPlayer.getPosition(),
-      TrackPlayer.getDuration(),
-      TrackPlayer.getBufferedPosition(),
-    ])
-    setState({ position, duration, buffered })
-  }
-
   useEffect(() => {
+    let isSubscribed = true;
     if (playerState === State.Stopped) {
       setState({ position: 0, duration: 0, buffered: 0 });
       return;
     }
     if (playerState !== State.Playing && playerState !== State.Buffering) return
+
+    const getProgress = async () => {
+      const [position, duration, buffered] = await Promise.all([
+        TrackPlayer.getPosition(),
+        TrackPlayer.getDuration(),
+        TrackPlayer.getBufferedPosition(),
+      ])
+      if (isSubscribed) {
+        setState({ position, duration, buffered })
+      }
+    }
+
     const poll = setInterval(getProgress, updateInterval || 1000)
-    return () => clearInterval(poll)
+    return () => {
+      isSubscribed = false;
+      clearInterval(poll)
+    }
   }, [playerState])
 
   return state
