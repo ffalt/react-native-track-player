@@ -7,6 +7,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaSessionCompat.QueueItem;
+
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
@@ -36,9 +37,9 @@ public class Track {
     public static List<Track> createTracks(Context context, List objects, int ratingType) {
         List<Track> tracks = new ArrayList<>();
 
-        for(Object o : objects) {
-            if(o instanceof Bundle) {
-                tracks.add(new Track(context, (Bundle)o, ratingType));
+        for (Object o : objects) {
+            if (o instanceof Bundle) {
+                tracks.add(new Track(context, (Bundle) o, ratingType));
             } else {
                 return null;
             }
@@ -77,7 +78,7 @@ public class Track {
 
         resourceId = Utils.getRawResourceId(context, bundle, "url");
 
-        if(resourceId == 0) {
+        if (resourceId == 0) {
             uri = Utils.getUri(context, bundle, "url");
         } else {
             uri = RawResourceDataSource.buildRawResourceUri(resourceId);
@@ -85,8 +86,8 @@ public class Track {
 
         String trackType = bundle.getString("type", "default");
 
-        for(TrackType t : TrackType.values()) {
-            if(t.name.equalsIgnoreCase(trackType)) {
+        for (TrackType t : TrackType.values()) {
+            if (t.name.equalsIgnoreCase(trackType)) {
                 type = t;
                 break;
             }
@@ -96,9 +97,9 @@ public class Track {
         userAgent = bundle.getString("userAgent");
 
         Bundle httpHeaders = bundle.getBundle("headers");
-        if(httpHeaders != null) {
+        if (httpHeaders != null) {
             headers = new HashMap<>();
-            for(String header : httpHeaders.keySet()) {
+            for (String header : httpHeaders.keySet()) {
                 headers.put(header, httpHeaders.getString(header));
             }
         }
@@ -165,12 +166,12 @@ public class Track {
 
     public MediaSource toMediaSource(Context ctx, LocalPlayback playback) {
         // Updates the user agent if not set
-        if(userAgent == null || userAgent.isEmpty())
+        if (userAgent == null || userAgent.isEmpty())
             userAgent = Util.getUserAgent(ctx, "react-native-track-player");
 
         DataSource.Factory ds;
 
-        if(resourceId != 0) {
+        if (resourceId != 0) {
 
             try {
                 RawResourceDataSource raw = new RawResourceDataSource(ctx);
@@ -181,12 +182,12 @@ public class Track {
                         return raw;
                     }
                 };
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 // Should never happen
                 throw new RuntimeException(ex);
             }
 
-        } else if(Utils.isLocal(uri)) {
+        } else if (Utils.isLocal(uri)) {
 
             // Creates a local source factory
             ds = new DefaultDataSourceFactory(ctx, userAgent);
@@ -201,7 +202,7 @@ public class Track {
                     true
             );
 
-            if(headers != null) {
+            if (headers != null) {
                 factory.getDefaultRequestProperties().set(headers);
             }
 
@@ -209,7 +210,7 @@ public class Track {
 
         }
 
-        switch(type) {
+        switch (type) {
             case DASH:
                 return new DashMediaSource.Factory(new DefaultDashChunkSource.Factory(ds), ds)
                         .createMediaSource(uri);
