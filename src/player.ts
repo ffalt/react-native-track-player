@@ -102,6 +102,10 @@ async function skipToPrevious(): Promise<void> {
   return TrackPlayer.skipToPrevious()
 }
 
+async function isServiceRunning(): Promise<boolean> {
+  return TrackPlayer.isServiceRunning()
+}
+
 // MARK: - Control Center / Notifications API
 
 async function updateOptions(options: MetadataOptions = {}): Promise<void> {
@@ -214,6 +218,7 @@ export default {
   destroy,
   registerPlaybackService,
   addEventListener,
+  isServiceRunning
 
   // MARK: - Queue API
   add,
