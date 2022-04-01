@@ -2,10 +2,9 @@ import groovy.json.JsonSlurper
 
 buildscript {
     repositories {
-        google()
         mavenCentral()
-        jcenter()
-   }
+        google()
+    }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.4.2'
     }
@@ -47,25 +46,14 @@ android {
 }
 
 repositories {
-        mavenLocal()
-        maven {
-            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-            url("$rootDir/../node_modules/react-native/android")
-        }
-        maven {
-            // Android JSC is installed from npm
-            url("$rootDir/../node_modules/jsc-android/dist")
-        }
-        mavenCentral {
-            // We don't want to fetch react-native from Maven Central as there are
-            // older versions over there.
-            content {
-                excludeGroup "com.facebook.react"
-            }
-        }
-        google()
-        maven { url 'https://www.jitpack.io' }
-        jcenter()
+    maven {
+        // As RN is not updated in jcenter anymore, we'll have to grab it from npm
+        // Make sure you have installed the react-native npm package before compiling
+        url "../node_modules/react-native/android"
+    }
+
+    mavenCentral()
+    google()
 }
 
 dependencies {
