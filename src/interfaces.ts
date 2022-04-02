@@ -33,12 +33,40 @@ export enum IOSCategoryOptions {
 }
 
 export interface PlayerOptions {
+  /**
+   * Minimum time in seconds that needs to be buffered.
+   */
   minBuffer?: number
+  /**
+   * Maximum time in seconds that needs to be buffered
+   */
   maxBuffer?: number
+  /**
+   * Time in seconds that should be kept in the buffer behind the current playhead time.
+   */
+  backBuffer?: number
+  /**
+   * Minimum time in seconds that needs to be buffered to start playing.
+   */
   playBuffer?: number
+  /**
+   * Maximum cache size in kilobytes.
+   */
   maxCacheSize?: number
+  /**
+   * [AVAudioSession.Category](https://developer.apple.com/documentation/avfoundation/avaudiosession/1616615-category) for iOS.
+   * Sets on `play()`.
+   */
   iosCategory?: IOSCategory
+  /**
+   * [AVAudioSession.Mode](https://developer.apple.com/documentation/avfoundation/avaudiosession/1616508-mode) for iOS.
+   * Sets on `play()`.
+   */
   iosCategoryMode?: IOSCategoryMode
+  /**
+   * [AVAudioSession.CategoryOptions](https://developer.apple.com/documentation/avfoundation/avaudiosession/1616503-categoryoptions) for iOS.
+   * Sets on `play()`.
+   */
   iosCategoryOptions?: IOSCategoryOptions[]
   /**
    * Indicates whether the player should automatically delay playback in order to minimize stalling.
@@ -50,12 +78,6 @@ export interface PlayerOptions {
    * Defaults to `true`.
    */
   autoUpdateMetadata?: boolean
-}
-
-export enum RepeatMode {
-  Off = TrackPlayer.REPEAT_OFF,
-  One = TrackPlayer.REPEAT_ONE,
-  All = TrackPlayer.REPEAT_ALL,
 }
 
 export enum RatingType {
@@ -97,13 +119,19 @@ export type ResourceObject = number
 
 export interface MetadataOptions {
   ratingType?: RatingType
-  jumpInterval?: number
+  forwardJumpInterval?: number
+  backwardJumpInterval?: number
+
+  // ios
   likeOptions?: FeedbackOptions
   dislikeOptions?: FeedbackOptions
   bookmarkOptions?: FeedbackOptions
-  stopWithApp?: boolean
 
   capabilities?: Capability[]
+
+  // android
+  stopWithApp?: boolean
+  alwaysPauseOnInterruption?: boolean
   notificationCapabilities?: Capability[]
   compactCapabilities?: Capability[]
 
@@ -123,7 +151,7 @@ export enum Event {
   PlaybackError = 'playback-error',
   PlaybackQueueEnded = 'playback-queue-ended',
   PlaybackTrackChanged = 'playback-track-changed',
-  QueueChanged = 'queue-changed',
+  PlaybackMetadataReceived = 'playback-metadata-received',
   RemotePlay = 'remote-play',
   RemotePlayId = 'remote-play-id',
   RemotePlaySearch = 'remote-play-search',
@@ -147,6 +175,12 @@ export enum TrackType {
   Dash = 'dash',
   HLS = 'hls',
   SmoothStreaming = 'smoothstreaming',
+}
+
+export enum RepeatMode {
+  Off = TrackPlayer.REPEAT_OFF,
+  Track = TrackPlayer.REPEAT_TRACK,
+  Queue = TrackPlayer.REPEAT_QUEUE,
 }
 
 export enum PitchAlgorithm {
@@ -175,6 +209,7 @@ export interface TrackMetadataBase {
   genre?: string
   date?: string
   rating?: number | boolean
+  isLiveStream?: boolean
 }
 
 export interface NowPlayingMetadata extends TrackMetadataBase {
@@ -182,12 +217,13 @@ export interface NowPlayingMetadata extends TrackMetadataBase {
 }
 
 export interface Track extends TrackMetadataBase {
-  id: string
   url: string | ResourceObject
   type?: TrackType
   userAgent?: string
   contentType?: string
   pitchAlgorithm?: PitchAlgorithm
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  headers?: { [key: string]: any }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any
 }

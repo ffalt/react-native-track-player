@@ -7,7 +7,6 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaSessionCompat.QueueItem;
-
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
@@ -32,14 +31,14 @@ import static android.support.v4.media.MediaMetadataCompat.*;
 /**
  * @author Guichaguri
  */
-public class Track {
+public class Track extends TrackMetadata {
 
     public static List<Track> createTracks(Context context, List objects, int ratingType) {
         List<Track> tracks = new ArrayList<>();
 
-        for (Object o : objects) {
-            if (o instanceof Bundle) {
-                tracks.add(new Track(context, (Bundle) o, ratingType));
+        for(Object o : objects) {
+            if(o instanceof Bundle) {
+                tracks.add(new Track(context, (Bundle)o, ratingType));
             } else {
                 return null;
             }
@@ -48,7 +47,6 @@ public class Track {
         return tracks;
     }
 
-    public String id;
     public Uri uri;
     public int resourceId;
 
@@ -57,28 +55,16 @@ public class Track {
     public String contentType;
     public String userAgent;
 
-    public Uri artwork;
-
-    public String title;
-    public String artist;
-    public String album;
-    public String date;
-    public String genre;
-    public long duration;
     public Bundle originalItem;
-
-    public RatingCompat rating;
 
     public Map<String, String> headers;
 
     public final long queueId;
 
     public Track(Context context, Bundle bundle, int ratingType) {
-        id = bundle.getString("id");
-
         resourceId = Utils.getRawResourceId(context, bundle, "url");
 
-        if (resourceId == 0) {
+        if(resourceId == 0) {
             uri = Utils.getUri(context, bundle, "url");
         } else {
             uri = RawResourceDataSource.buildRawResourceUri(resourceId);
@@ -86,8 +72,8 @@ public class Track {
 
         String trackType = bundle.getString("type", "default");
 
-        for (TrackType t : TrackType.values()) {
-            if (t.name.equalsIgnoreCase(trackType)) {
+        for(TrackType t : TrackType.values()) {
+            if(t.name.equalsIgnoreCase(trackType)) {
                 type = t;
                 break;
             }
@@ -97,9 +83,9 @@ public class Track {
         userAgent = bundle.getString("userAgent");
 
         Bundle httpHeaders = bundle.getBundle("headers");
-        if (httpHeaders != null) {
+        if(httpHeaders != null) {
             headers = new HashMap<>();
-            for (String header : httpHeaders.keySet()) {
+            for(String header : httpHeaders.keySet()) {
                 headers.put(header, httpHeaders.getString(header));
             }
         }
@@ -110,44 +96,19 @@ public class Track {
         originalItem = bundle;
     }
 
+    @Override
     public void setMetadata(Context context, Bundle bundle, int ratingType) {
-        artwork = Utils.getUri(context, bundle, "artwork");
-
-        title = bundle.getString("title");
-        artist = bundle.getString("artist");
-        album = bundle.getString("album");
-        date = bundle.getString("date");
-        genre = bundle.getString("genre");
-        duration = Utils.toMillis(bundle.getDouble("duration", 0));
-
-        rating = Utils.getRating(bundle, "rating", ratingType);
+        super.setMetadata(context, bundle, ratingType);
 
         if (originalItem != null && originalItem != bundle)
             originalItem.putAll(bundle);
     }
 
+    @Override
     public MediaMetadataCompat.Builder toMediaMetadata() {
-        MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
+        MediaMetadataCompat.Builder builder = super.toMediaMetadata();
 
-        builder.putString(METADATA_KEY_TITLE, title);
-        builder.putString(METADATA_KEY_ARTIST, artist);
-        builder.putString(METADATA_KEY_ALBUM, album);
-        builder.putString(METADATA_KEY_DATE, date);
-        builder.putString(METADATA_KEY_GENRE, genre);
         builder.putString(METADATA_KEY_MEDIA_URI, uri.toString());
-        builder.putString(METADATA_KEY_MEDIA_ID, id);
-
-        if (duration > 0) {
-            builder.putLong(METADATA_KEY_DURATION, duration);
-        }
-
-        if (artwork != null) {
-            builder.putString(METADATA_KEY_ART_URI, artwork.toString());
-        }
-
-        if (rating != null) {
-            builder.putRating(METADATA_KEY_RATING, rating);
-        }
 
         return builder;
     }
@@ -156,7 +117,6 @@ public class Track {
         MediaDescriptionCompat descr = new MediaDescriptionCompat.Builder()
                 .setTitle(title)
                 .setSubtitle(artist)
-                .setMediaId(id)
                 .setMediaUri(uri)
                 .setIconUri(artwork)
                 .build();
@@ -166,12 +126,12 @@ public class Track {
 
     public MediaSource toMediaSource(Context ctx, LocalPlayback playback) {
         // Updates the user agent if not set
-        if (userAgent == null || userAgent.isEmpty())
+        if(userAgent == null || userAgent.isEmpty())
             userAgent = Util.getUserAgent(ctx, "react-native-track-player");
 
         DataSource.Factory ds;
 
-        if (resourceId != 0) {
+        if(resourceId != 0) {
 
             try {
                 RawResourceDataSource raw = new RawResourceDataSource(ctx);
@@ -182,12 +142,12 @@ public class Track {
                         return raw;
                     }
                 };
-            } catch (IOException ex) {
+            } catch(IOException ex) {
                 // Should never happen
                 throw new RuntimeException(ex);
             }
 
-        } else if (Utils.isLocal(uri)) {
+        } else if(Utils.isLocal(uri)) {
 
             // Creates a local source factory
             ds = new DefaultDataSourceFactory(ctx, userAgent);
@@ -202,7 +162,7 @@ public class Track {
                     true
             );
 
-            if (headers != null) {
+            if(headers != null) {
                 factory.getDefaultRequestProperties().set(headers);
             }
 
@@ -210,20 +170,33 @@ public class Track {
 
         }
 
-        switch (type) {
+        switch(type) {
             case DASH:
-                return new DashMediaSource.Factory(new DefaultDashChunkSource.Factory(ds), ds)
-                        .createMediaSource(uri);
+                return createDashSource(ds);
             case HLS:
-                return new HlsMediaSource.Factory(ds)
-                        .createMediaSource(uri);
+                return createHlsSource(ds);
             case SMOOTH_STREAMING:
-                return new SsMediaSource.Factory(new DefaultSsChunkSource.Factory(ds), ds)
-                        .createMediaSource(uri);
+                return createSsSource(ds);
             default:
                 return new ProgressiveMediaSource.Factory(ds, new DefaultExtractorsFactory()
                         .setConstantBitrateSeekingEnabled(true))
                         .createMediaSource(uri);
         }
     }
+
+    private MediaSource createDashSource(DataSource.Factory factory) {
+        return new DashMediaSource.Factory(new DefaultDashChunkSource.Factory(factory), factory)
+                .createMediaSource(uri);
+    }
+
+    private MediaSource createHlsSource(DataSource.Factory factory) {
+        return new HlsMediaSource.Factory(factory)
+                .createMediaSource(uri);
+    }
+
+    private MediaSource createSsSource(DataSource.Factory factory) {
+        return new SsMediaSource.Factory(new DefaultSsChunkSource.Factory(factory), factory)
+                .createMediaSource(uri);
+    }
+
 }

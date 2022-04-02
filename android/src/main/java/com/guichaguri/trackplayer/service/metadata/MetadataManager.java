@@ -3,37 +3,34 @@ package com.guichaguri.trackplayer.service.metadata;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Action;
-
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.RatingCompat;
-
 import androidx.media.app.NotificationCompat.MediaStyle;
 import androidx.media.session.MediaButtonReceiver;
-
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.views.imagehelper.ResourceDrawableIdHelper;
 import com.guichaguri.trackplayer.R;
 import com.guichaguri.trackplayer.service.MusicManager;
 import com.guichaguri.trackplayer.service.MusicService;
 import com.guichaguri.trackplayer.service.Utils;
 import com.guichaguri.trackplayer.service.models.Track;
+import com.guichaguri.trackplayer.service.models.TrackMetadata;
 import com.guichaguri.trackplayer.service.player.ExoPlayback;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +44,8 @@ public class MetadataManager {
     private final MediaSessionCompat session;
 
     private int ratingType = RatingCompat.RATING_NONE;
-    private int jumpInterval = 15;
+    private int forwardJumpInterval = 15;
+    private int backwardJumpInterval = 15;
     private long actions = 0;
     private long compactActions = 0;
     private SimpleTarget<Bitmap> artworkTarget;
@@ -59,16 +57,8 @@ public class MetadataManager {
         this.service = service;
         this.manager = manager;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(Utils.NOTIFICATION_CHANNEL, "Playback", NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setShowBadge(false);
-            channel.setSound(null, null);
-
-            NotificationManager not = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
-            not.createNotificationChannel(channel);
-        }
-
-        this.builder = new NotificationCompat.Builder(service, Utils.NOTIFICATION_CHANNEL);
+        String channel = Utils.getNotificationChannel((Context) service);
+        this.builder = new NotificationCompat.Builder(service, channel);
         this.session = new MediaSessionCompat(service, "TrackPlayer", null, null);
 
         session.setFlags(MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
@@ -77,6 +67,12 @@ public class MetadataManager {
         Context context = service.getApplicationContext();
         String packageName = context.getPackageName();
         Intent openApp = context.getPackageManager().getLaunchIntentForPackage(packageName);
+
+        if (openApp == null) {
+            openApp = new Intent();
+            openApp.setPackage(packageName);
+            openApp.addCategory(Intent.CATEGORY_LAUNCHER);
+        }
 
         // Prevent the app from launching a new instance
         openApp.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -103,7 +99,6 @@ public class MetadataManager {
 
     /**
      * Updates the metadata options
-     *
      * @param options The options
      */
     public void updateOptions(Bundle options) {
@@ -114,12 +109,12 @@ public class MetadataManager {
         actions = 0;
         compactActions = 0;
 
-        if (capabilities != null) {
+        if(capabilities != null) {
             // Create the actions mask
-            for (int cap : capabilities) actions |= cap;
+            for(int cap : capabilities) actions |= cap;
 
             // If there is no notification capabilities defined, we'll show all capabilities available
-            if (notification == null) notification = capabilities;
+            if(notification == null) notification = capabilities;
 
             // Initialize all actions based on the options
 
@@ -139,22 +134,23 @@ public class MetadataManager {
                     getIcon(options, "nextIcon", R.drawable.next));
 
             // Update the action mask for the compact view
-            if (compact != null) {
-                for (int cap : compact) compactActions |= cap;
+            if(compact != null) {
+                for(int cap : compact) compactActions |= cap;
             }
         }
 
         // Update the color
-        builder.setColor(options.getInt("color", NotificationCompat.COLOR_DEFAULT));
+        builder.setColor(Utils.getInt(options, "color", NotificationCompat.COLOR_DEFAULT));
 
         // Update the icon
         builder.setSmallIcon(getIcon(options, "icon", R.drawable.play));
 
         // Update the jump interval
-        jumpInterval = options.getInt("jumpInterval", 15);
+        forwardJumpInterval = Utils.getInt(options, "forwardJumpInterval", 15);
+        backwardJumpInterval = Utils.getInt(options, "backwardJumpInterval", 15);
 
         // Update the rating type
-        ratingType = options.getInt("ratingType", RatingCompat.RATING_NONE);
+        ratingType = Utils.getInt(options, "ratingType", RatingCompat.RATING_NONE);
         session.setRatingType(ratingType);
 
         updateNotification();
@@ -164,8 +160,12 @@ public class MetadataManager {
         return ratingType;
     }
 
-    public int getJumpInterval() {
-        return jumpInterval;
+    public int getForwardJumpInterval() {
+        return forwardJumpInterval;
+    }
+
+    public int getBackwardJumpInterval() {
+        return backwardJumpInterval;
     }
 
     public void removeNotifications() {
@@ -177,12 +177,11 @@ public class MetadataManager {
 
     /**
      * Updates the artwork
-     *
      * @param bitmap The new artwork
      */
     protected void updateArtwork(Bitmap bitmap) {
         Track track = manager.getPlayback().getCurrentTrack();
-        if (track == null) return;
+        if(track == null) return;
 
         MediaMetadataCompat.Builder metadata = track.toMediaMetadata();
 
@@ -195,16 +194,15 @@ public class MetadataManager {
 
     /**
      * Updates the current track
-     *
      * @param track The new track
      */
-    public void updateMetadata(Track track) {
+    public void updateMetadata(ExoPlayback playback, TrackMetadata track) {
         MediaMetadataCompat.Builder metadata = track.toMediaMetadata();
 
         RequestManager rm = Glide.with(service.getApplicationContext());
-        if (artworkTarget != null) rm.clear(artworkTarget);
+        if(artworkTarget != null) rm.clear(artworkTarget);
 
-        if (track.artwork != null) {
+        if(track.artwork != null) {
             artworkTarget = rm.asBitmap()
                     .load(track.artwork)
                     .into(new SimpleTarget<Bitmap>() {
@@ -225,12 +223,13 @@ public class MetadataManager {
         builder.setSubText(track.album);
 
         session.setMetadata(metadata.build());
+
+        updatePlaybackState(playback);
         updateNotification();
     }
 
     /**
-     * Updates the playback state
-     *
+     * Updates the playback state and notification buttons
      * @param playback The player
      */
     public void updatePlayback(ExoPlayback playback) {
@@ -244,7 +243,7 @@ public class MetadataManager {
         addAction(previousAction, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS, compact);
         addAction(rewindAction, PlaybackStateCompat.ACTION_REWIND, compact);
 
-        if (playing) {
+        if(playing) {
             addAction(pauseAction, PlaybackStateCompat.ACTION_PAUSE, compact);
         } else {
             addAction(playAction, PlaybackStateCompat.ACTION_PLAY, compact);
@@ -255,11 +254,11 @@ public class MetadataManager {
         addAction(nextAction, PlaybackStateCompat.ACTION_SKIP_TO_NEXT, compact);
 
         // Prevent the media style from being used in older Huawei devices that don't support custom styles
-        if (!Build.MANUFACTURER.toLowerCase().contains("huawei") || Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if(!Build.MANUFACTURER.toLowerCase().contains("huawei") || Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             MediaStyle style = new MediaStyle();
 
-            if (playing) {
+            if(playing) {
                 style.setShowCancelButton(false);
             } else {
                 // Shows the cancel button on pre-lollipop versions due to a bug
@@ -284,14 +283,22 @@ public class MetadataManager {
 
         }
 
+        updatePlaybackState(playback);
+        updateNotification();
+    }
+
+    /**
+     * Updates the playback state
+     * @param playback The player
+     */
+    private void updatePlaybackState(ExoPlayback playback) {
         // Updates the media session state
         PlaybackStateCompat.Builder pb = new PlaybackStateCompat.Builder();
         pb.setActions(actions);
-        pb.setState(state, playback.getPosition(), playback.getRate());
+        pb.setState(playback.getState(), playback.getPosition(), playback.getRate());
         pb.setBufferedPosition(playback.getBufferedPosition());
 
         session.setPlaybackState(pb.build());
-        updateNotification();
     }
 
     public void setActive(boolean active) {
@@ -308,7 +315,7 @@ public class MetadataManager {
     }
 
     private void updateNotification() {
-        if (session.isActive()) {
+        if(session.isActive()) {
             service.startForeground(1, builder.build());
         } else {
             service.stopForeground(true);
@@ -316,28 +323,28 @@ public class MetadataManager {
     }
 
     private int getIcon(Bundle options, String propertyName, int defaultIcon) {
-        if (!options.containsKey(propertyName)) return defaultIcon;
+        if(!options.containsKey(propertyName)) return defaultIcon;
 
         Bundle bundle = options.getBundle(propertyName);
-        if (bundle == null) return defaultIcon;
+        if(bundle == null) return defaultIcon;
 
         ResourceDrawableIdHelper helper = ResourceDrawableIdHelper.getInstance();
         int icon = helper.getResourceDrawableId(service, bundle.getString("uri"));
-        if (icon == 0) return defaultIcon;
+        if(icon == 0) return defaultIcon;
 
         return icon;
     }
 
     private Action createAction(List<Integer> caps, long action, String title, int icon) {
-        if (!caps.contains((int) action)) return null;
+        if(!caps.contains((int)action)) return null;
 
         return new Action(icon, title, MediaButtonReceiver.buildMediaButtonPendingIntent(service, action));
     }
 
     private void addAction(Action action, long id, List<Integer> compact) {
-        if (action == null) return;
+        if(action == null) return;
 
-        if ((compactActions & id) != 0) compact.add(builder.mActions.size());
+        if((compactActions & id) != 0) compact.add(builder.mActions.size());
         builder.mActions.add(action);
     }
 
