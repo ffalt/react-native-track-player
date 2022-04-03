@@ -212,6 +212,13 @@ public class MusicManager implements OnAudioFocusChangeListener {
             metadata.updatePlayback(playback);
     }
 
+    public void onQueueChange() {
+        Log.d(Utils.LOG, "onQueueChange");
+
+        Bundle bundle = new Bundle();
+        service.emit(MusicEvents.QUEUE_CHANGED, bundle);
+    }
+
     public void onTrackUpdate(Integer prevIndex, long prevPos, Integer nextIndex, Track next) {
         Log.d(Utils.LOG, "onTrackUpdate");
 

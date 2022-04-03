@@ -476,4 +476,55 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
             waitForConnection(() -> callback.resolve(binder.getPlayback().getState()));
         }
     }
+
+
+    @ReactMethod
+    public void setShuffleModeEnabled(final boolean shuffleModeEnabled, final Promise callback) {
+        waitForConnection(() -> {
+            binder.getPlayback().setShuffleModeEnabled(shuffleModeEnabled);
+            callback.resolve(null);
+        });
+    }
+
+    @ReactMethod
+    public void getShuffleModeEnabled(final Promise callback) {
+        waitForConnection(() -> {
+            callback.resolve(binder.getPlayback().getShuffleModeEnabled());
+        });
+    }
+
+    @ReactMethod
+    public void move(int index, int newIndex, final Promise callback) {
+        waitForConnection(() -> {
+            ExoPlayback playback = binder.getPlayback();
+            int size = playback.getQueue().size();
+            Integer currentIndex = playback.getCurrentTrackIndex();
+
+            if (index < 0 || index >= size) {
+                callback.reject("index_out_of_bounds", "The track index is out of bounds");
+            } else if (newIndex < 0 || newIndex >= size) {
+                callback.reject("index_out_of_bounds", "The new index is out of bounds");
+            } else if (index == currentIndex || newIndex == currentIndex) {
+                callback.reject("not_movable", "The current track cannot be moved");
+            } else {
+                playback.move(index, newIndex, callback);
+            }
+            callback.resolve(null);
+        });
+    }
+
+    @ReactMethod
+    public void shuffle(final Promise callback) {
+        waitForConnection(() -> {
+            binder.getPlayback().shuffle(callback);
+        });
+    }
+
+    @ReactMethod
+    public void clear(final Promise callback) {
+        waitForConnection(() -> {
+            binder.getPlayback().clear(callback);
+        });
+    }
+
 }

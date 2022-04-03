@@ -307,6 +307,26 @@ async function getRepeatMode(): Promise<RepeatMode> {
   return TrackPlayer.getRepeatMode()
 }
 
+async function move(index: number, newIndex: number): Promise<void> {
+  return TrackPlayer.move(index, newIndex)
+}
+
+async function shuffle(): Promise<void> {
+  return TrackPlayer.shuffle()
+}
+
+async function clear(): Promise<void> {
+  return TrackPlayer.clear()
+}
+
+async function getShuffleModeEnabled(): Promise<boolean> {
+  return TrackPlayer.getShuffleModeEnabled()
+}
+
+async function setShuffleModeEnabled(enabled: boolean): Promise<boolean> {
+  return TrackPlayer.setShuffleModeEnabled(enabled)
+}
+
 export default {
   // MARK: - General API
   setupPlayer,
@@ -319,9 +339,13 @@ export default {
   add,
   remove,
   removeUpcomingTracks,
+  move,
+  clear,
+  shuffle,
   skip,
   skipToNext,
   skipToPrevious,
+  setShuffleModeEnabled,
 
   // MARK: - Control Center / Notifications API
   updateOptions,
@@ -349,5 +373,6 @@ export default {
   getBufferedPosition,
   getPosition,
   getState,
+  getShuffleModeEnabled,
   getRepeatMode,
 }
