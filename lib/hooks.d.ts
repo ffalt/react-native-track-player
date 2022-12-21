@@ -1,7 +1,7 @@
 import { State, Event } from './interfaces';
 /** Get current playback state and subsequent updatates  */
 export declare const usePlaybackState: () => State;
-declare type Handler = (payload: {
+type Handler = (payload: {
     type: Event;
     [key: string]: any;
 }) => void;
