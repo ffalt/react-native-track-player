@@ -104,7 +104,7 @@ export declare enum Capability {
     Dislike,
     Bookmark
 }
-export declare type ResourceObject = number;
+export type ResourceObject = number;
 export interface MetadataOptions {
     ratingType?: RatingType;
     forwardJumpInterval?: number;
