@@ -7,7 +7,7 @@ declare function setupPlayer(options?: PlayerOptions): Promise<void>;
  * Destroys the player, cleaning up its resources.
  */
 declare function destroy(): any;
-type ServiceHandler = () => Promise<void>;
+declare type ServiceHandler = () => Promise<void>;
 /**
  * Register the playback service. The service will run as long as the player runs.
  */

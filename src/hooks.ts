@@ -82,16 +82,6 @@ export interface ProgressState {
   buffered: number
 }
 
-function usePrevious(value: any) {
-  const ref = useRef()
-
-  useEffect(() => {
-    ref.current = value
-  })
-
-  return ref.current
-}
-
 /**
  * Poll for track progress for the given interval (in miliseconds)
  * @param interval - ms interval
@@ -140,7 +130,6 @@ export function useProgress(updateInterval?: number) {
 
     // Set initial state
     getProgress()
-    if (playerState !== State.Playing && playerState !== State.Buffering) return
 
     // Create interval to update state periodically
     const poll = setInterval(getProgress, updateInterval || 1000)
