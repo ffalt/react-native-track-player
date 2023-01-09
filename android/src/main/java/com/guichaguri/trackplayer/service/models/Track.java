@@ -5,8 +5,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaSessionCompat.QueueItem;
+
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
@@ -36,9 +37,9 @@ public class Track extends TrackMetadata {
     public static List<Track> createTracks(Context context, List objects, int ratingType) {
         List<Track> tracks = new ArrayList<>();
 
-        for(Object o : objects) {
-            if(o instanceof Bundle) {
-                tracks.add(new Track(context, (Bundle)o, ratingType));
+        for (Object o : objects) {
+            if (o instanceof Bundle) {
+                tracks.add(new Track(context, (Bundle) o, ratingType));
             } else {
                 return null;
             }
@@ -64,7 +65,7 @@ public class Track extends TrackMetadata {
     public Track(Context context, Bundle bundle, int ratingType) {
         resourceId = Utils.getRawResourceId(context, bundle, "url");
 
-        if(resourceId == 0) {
+        if (resourceId == 0) {
             uri = Utils.getUri(context, bundle, "url");
         } else {
             uri = RawResourceDataSource.buildRawResourceUri(resourceId);
@@ -72,8 +73,8 @@ public class Track extends TrackMetadata {
 
         String trackType = bundle.getString("type", "default");
 
-        for(TrackType t : TrackType.values()) {
-            if(t.name.equalsIgnoreCase(trackType)) {
+        for (TrackType t : TrackType.values()) {
+            if (t.name.equalsIgnoreCase(trackType)) {
                 type = t;
                 break;
             }
@@ -83,9 +84,9 @@ public class Track extends TrackMetadata {
         userAgent = bundle.getString("userAgent");
 
         Bundle httpHeaders = bundle.getBundle("headers");
-        if(httpHeaders != null) {
+        if (httpHeaders != null) {
             headers = new HashMap<>();
-            for(String header : httpHeaders.keySet()) {
+            for (String header : httpHeaders.keySet()) {
                 headers.put(header, httpHeaders.getString(header));
             }
         }
@@ -126,12 +127,12 @@ public class Track extends TrackMetadata {
 
     public MediaSource toMediaSource(Context ctx, LocalPlayback playback) {
         // Updates the user agent if not set
-        if(userAgent == null || userAgent.isEmpty())
+        if (userAgent == null || userAgent.isEmpty())
             userAgent = Util.getUserAgent(ctx, "react-native-track-player");
 
         DataSource.Factory ds;
 
-        if(resourceId != 0) {
+        if (resourceId != 0) {
 
             try {
                 RawResourceDataSource raw = new RawResourceDataSource(ctx);
@@ -142,12 +143,12 @@ public class Track extends TrackMetadata {
                         return raw;
                     }
                 };
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 // Should never happen
                 throw new RuntimeException(ex);
             }
 
-        } else if(Utils.isLocal(uri)) {
+        } else if (Utils.isLocal(uri)) {
 
             // Creates a local source factory
             ds = new DefaultDataSourceFactory(ctx, userAgent);
@@ -155,22 +156,21 @@ public class Track extends TrackMetadata {
         } else {
 
             // Creates a default http source factory, enabling cross protocol redirects
-            DefaultHttpDataSourceFactory factory = new DefaultHttpDataSourceFactory(
-                    userAgent, null,
-                    DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS,
-                    DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
-                    true
-            );
+            DefaultHttpDataSource.Factory factory = new DefaultHttpDataSource.Factory()
+                    .setUserAgent(userAgent)
+                    .setReadTimeoutMs(DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS)
+                    .setConnectTimeoutMs(DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS)
+                    .setAllowCrossProtocolRedirects(true);
 
-            if(headers != null) {
-                factory.getDefaultRequestProperties().set(headers);
+            if (headers != null) {
+                factory.setDefaultRequestProperties(headers);
             }
 
             ds = playback.enableCaching(factory);
 
         }
 
-        switch(type) {
+        switch (type) {
             case DASH:
                 return createDashSource(ds);
             case HLS:
@@ -180,23 +180,23 @@ public class Track extends TrackMetadata {
             default:
                 return new ProgressiveMediaSource.Factory(ds, new DefaultExtractorsFactory()
                         .setConstantBitrateSeekingEnabled(true))
-                        .createMediaSource(uri);
+                        .createMediaSource(MediaItem.fromUri(uri));
         }
     }
 
     private MediaSource createDashSource(DataSource.Factory factory) {
         return new DashMediaSource.Factory(new DefaultDashChunkSource.Factory(factory), factory)
-                .createMediaSource(uri);
+                .createMediaSource(MediaItem.fromUri(uri));
     }
 
     private MediaSource createHlsSource(DataSource.Factory factory) {
         return new HlsMediaSource.Factory(factory)
-                .createMediaSource(uri);
+                .createMediaSource(MediaItem.fromUri(uri));
     }
 
     private MediaSource createSsSource(DataSource.Factory factory) {
         return new SsMediaSource.Factory(new DefaultSsChunkSource.Factory(factory), factory)
-                .createMediaSource(uri);
+                .createMediaSource(MediaItem.fromUri(uri));
     }
 
 }

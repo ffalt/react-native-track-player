@@ -34,14 +34,31 @@ const setupIfNecessary = async () => {
   await TrackPlayer.setupPlayer({});
   await TrackPlayer.updateOptions({
     stopWithApp: false,
+    alwaysPauseOnInterruption: false,
     capabilities: [
       Capability.Play,
       Capability.Pause,
+      Capability.SeekTo,
+      Capability.JumpBackward,
+      Capability.JumpForward,
       Capability.SkipToNext,
-      Capability.SkipToPrevious,
       Capability.Stop,
     ],
-    compactCapabilities: [Capability.Play, Capability.Pause],
+    notificationCapabilities: [
+      Capability.Play,
+      Capability.Pause,
+      Capability.SeekTo,
+      Capability.JumpBackward,
+      Capability.JumpForward,
+      Capability.SkipToNext,
+      Capability.Stop,
+    ],
+    compactCapabilities: [
+      Capability.Play,
+      Capability.Pause,
+      Capability.SkipToNext,
+      Capability.Stop,
+    ],
   });
 
   await TrackPlayer.add(playlistData);
@@ -61,13 +78,34 @@ const togglePlayback = async (playbackState: State) => {
   if (currentTrack == null) {
     // TODO: Perhaps present an error or restart the playlist?
   } else {
-    if (playbackState !== State.Playing) {
+    if (playbackState === State.Paused || playbackState === State.None) {
       await TrackPlayer.play();
     } else {
       await TrackPlayer.pause();
     }
   }
 };
+
+export function stateToString(state: State): string {
+  switch (state) {
+    case State.Buffering:
+      return 'Buffering';
+    case State.Connecting:
+      return 'Connecting';
+    case State.None:
+      return 'None';
+    case State.Paused:
+      return 'Paused';
+    case State.Playing:
+      return 'Playing';
+    case State.Ready:
+      return 'Ready';
+    case State.Stopped:
+      return 'Stopped';
+    default:
+      return 'Undefined';
+  }
+}
 
 const App = () => {
   const playbackState = usePlaybackState();
@@ -94,6 +132,10 @@ const App = () => {
     setupIfNecessary();
   }, []);
 
+  useEffect(() => {
+    console.log(`playbackState ${stateToString(playbackState)}`);
+  }, [playbackState]);
+
   return (
     <SafeAreaView style={styles.screenContainer}>
       <StatusBar barStyle={'light-content'} />
@@ -106,6 +148,7 @@ const App = () => {
         <Image style={styles.artwork} source={{uri: `${trackArtwork}`}} />
         <Text style={styles.titleText}>{trackTitle}</Text>
         <Text style={styles.artistText}>{trackArtist}</Text>
+        <Text style={styles.artistText}>{stateToString(playbackState)}</Text>
         <Slider
           style={styles.progressContainer}
           value={progress.position}
