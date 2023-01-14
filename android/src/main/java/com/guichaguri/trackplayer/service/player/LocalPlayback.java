@@ -8,7 +8,7 @@ import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.database.DatabaseProvider;
-import com.google.android.exoplayer2.database.ExoDatabaseProvider;
+import com.google.android.exoplayer2.database.StandaloneDatabaseProvider;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
@@ -42,7 +42,7 @@ public class LocalPlayback extends ExoPlayback<ExoPlayer> {
     public void initialize() {
         if(cacheMaxSize > 0) {
             File cacheDir = new File(context.getCacheDir(), "TrackPlayer");
-            DatabaseProvider db = new ExoDatabaseProvider(context);
+            DatabaseProvider db = new StandaloneDatabaseProvider(context);
             cache = new SimpleCache(cacheDir, new LeastRecentlyUsedCacheEvictor(cacheMaxSize), db);
         } else {
             cache = null;
@@ -106,7 +106,7 @@ public class LocalPlayback extends ExoPlayback<ExoPlayer> {
 
     @Override
     public void remove(List<Integer> indexes, Promise promise) {
-        int currentIndex = player.getCurrentWindowIndex();
+        int currentIndex = player.getCurrentMediaItemIndex();
 
         // Sort the list so we can loop through sequentially
         Collections.sort(indexes);
@@ -139,7 +139,7 @@ public class LocalPlayback extends ExoPlayback<ExoPlayer> {
 
     @Override
     public void removeUpcomingTracks() {
-        int currentIndex = player.getCurrentWindowIndex();
+        int currentIndex = player.getCurrentMediaItemIndex();
         if (currentIndex == C.INDEX_UNSET) return;
 
         for (int i = queue.size() - 1; i > currentIndex; i--) {
@@ -162,7 +162,8 @@ public class LocalPlayback extends ExoPlayback<ExoPlayer> {
         queue.clear();
 
         source = new ConcatenatingMediaSource();
-        player.prepare(source, true, true);
+        player.setMediaSource(source, true);
+        player.prepare();
         prepared = false; // We set it to false as the queue is now empty
 
         lastKnownMediaIndex = C.INDEX_UNSET;
@@ -212,12 +213,12 @@ public class LocalPlayback extends ExoPlayback<ExoPlayer> {
     }
 
     @Override
-    public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+    public void onPlaybackStateChanged(int playbackState) {
         if(playbackState == Player.STATE_ENDED) {
             prepared = false;
         }
 
-        super.onPlayerStateChanged(playWhenReady, playbackState);
+        super.onPlaybackStateChanged(playbackState);
     }
 
     @Override

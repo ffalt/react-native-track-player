@@ -301,6 +301,7 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
     public void onTracksChanged(@NonNull Tracks tracks) {
         Log.d(Utils.LOG, "onTracksChanged");
         resetScrobble();
+        updateScrobble();;
     }
 
     private final Runnable updateScrobbleAction = new Runnable() {
