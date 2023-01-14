@@ -33,8 +33,8 @@ public class LocalPlayback extends ExoPlayback<ExoPlayer> {
     private boolean prepared = false;
 
     public LocalPlayback(Context context, MusicManager manager, ExoPlayer player, long maxCacheSize,
-                         boolean autoUpdateMetadata) {
-        super(context, manager, player, autoUpdateMetadata);
+                         boolean autoUpdateMetadata, boolean scrobble) {
+        super(context, manager, player, autoUpdateMetadata, scrobble);
         this.cacheMaxSize = maxCacheSize;
     }
 
@@ -130,8 +130,8 @@ public class LocalPlayback extends ExoPlayback<ExoPlayer> {
             }
 
             // Fix the window index
-            if (index < lastKnownWindow) {
-                lastKnownWindow--;
+            if (index < lastKnownMediaIndex) {
+                lastKnownMediaIndex--;
             }
         }
          manager.onQueueChange();
@@ -165,8 +165,8 @@ public class LocalPlayback extends ExoPlayback<ExoPlayer> {
         player.prepare(source, true, true);
         prepared = false; // We set it to false as the queue is now empty
 
-        lastKnownWindow = C.INDEX_UNSET;
-        lastKnownPosition = C.POSITION_UNSET;
+        lastKnownMediaIndex = C.INDEX_UNSET;
+        lastKnownMediaPosition = C.POSITION_UNSET;
 
         manager.onReset();
         manager.onQueueChange();

@@ -121,6 +121,7 @@ export interface MetadataOptions {
   ratingType?: RatingType
   forwardJumpInterval?: number
   backwardJumpInterval?: number
+  scrobble?: boolean
 
   // ios
   likeOptions?: FeedbackOptions
@@ -152,6 +153,7 @@ export enum Event {
   PlaybackQueueEnded = 'playback-queue-ended',
   PlaybackTrackChanged = 'playback-track-changed',
   QueueChanged = 'queue-changed',
+  Scrobble = 'scrobble',
   PlaybackMetadataReceived = 'playback-metadata-received',
   RemotePlay = 'remote-play',
   RemotePlayId = 'remote-play-id',

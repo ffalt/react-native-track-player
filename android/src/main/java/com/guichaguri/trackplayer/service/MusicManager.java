@@ -61,6 +61,7 @@ public class MusicManager implements OnAudioFocusChangeListener {
 
     private boolean stopWithApp = false;
     private boolean alwaysPauseOnInterruption = false;
+    private boolean scrobble = false;
 
     @SuppressLint("InvalidWakeLockTag")
     public MusicManager(MusicService service) {
@@ -87,6 +88,13 @@ public class MusicManager implements OnAudioFocusChangeListener {
 
     public void setStopWithApp(boolean stopWithApp) {
         this.stopWithApp = stopWithApp;
+    }
+
+    public void setScrobble(boolean scrobble) {
+        this.scrobble = scrobble;
+        if (this.playback != null) {
+            this.playback.setScrobble(scrobble);
+        }
     }
 
     public void setAlwaysPauseOnInterruption(boolean alwaysPauseOnInterruption) {
@@ -135,7 +143,7 @@ public class MusicManager implements OnAudioFocusChangeListener {
         player.setAudioAttributes(new com.google.android.exoplayer2.audio.AudioAttributes.Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setUsage(C.USAGE_MEDIA).build(), false);
 
-        return new LocalPlayback(service, this, player, cacheMaxSize, autoUpdateMetadata);
+        return new LocalPlayback(service, this, player, cacheMaxSize, autoUpdateMetadata, scrobble);
     }
 
     @SuppressLint("WakelockTimeout")
@@ -217,6 +225,14 @@ public class MusicManager implements OnAudioFocusChangeListener {
 
         Bundle bundle = new Bundle();
         service.emit(MusicEvents.QUEUE_CHANGED, bundle);
+    }
+
+    public void onScrobble(Integer trackIndex) {
+        Log.d(Utils.LOG, "onScrobble");
+
+        Bundle bundle = new Bundle();
+        if (trackIndex != null) bundle.putInt("trackIndex", trackIndex);
+        service.emit(MusicEvents.SCROBBLE, bundle);
     }
 
     public void onTrackUpdate(Integer prevIndex, long prevPos, Integer nextIndex, Track next) {

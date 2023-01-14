@@ -37,6 +37,7 @@ public class MusicEvents extends BroadcastReceiver {
     public static final String PLAYBACK_ERROR = "playback-error";
 
     public static final String QUEUE_CHANGED = "queue-changed";
+    public static final String SCROBBLE = "scrobble";
 
     private final ReactContext reactContext;
 

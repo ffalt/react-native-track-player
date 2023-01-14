@@ -3,13 +3,12 @@ package com.guichaguri.trackplayer.service.player;
 import android.content.Context;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.os.Handler;
 
 import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Promise;
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
@@ -20,9 +19,6 @@ import com.google.android.exoplayer2.Timeline.Window;
 import com.google.android.exoplayer2.Tracks;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
-import com.google.android.exoplayer2.source.TrackGroup;
-import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.guichaguri.trackplayer.service.MusicManager;
 import com.guichaguri.trackplayer.service.Utils;
 import com.guichaguri.trackplayer.service.models.Track;
@@ -44,17 +40,24 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
     protected List<Track> queue = Collections.synchronizedList(new ArrayList<>());
 
     // https://github.com/google/ExoPlayer/issues/2728
-    protected int lastKnownWindow = C.INDEX_UNSET;
-    protected long lastKnownPosition = C.POSITION_UNSET;
+    protected int lastKnownMediaIndex = C.INDEX_UNSET;
+    protected long lastKnownMediaPosition = C.POSITION_UNSET;
     protected int previousState = PlaybackStateCompat.STATE_NONE;
     protected float volumeMultiplier = 1.0F;
     protected boolean autoUpdateMetadata;
+    protected final Handler handler = new Handler();
+    protected Integer scrobbleTrackindex = C.INDEX_UNSET;
+    protected long scrobbleDuration = 0;
+    protected long scrobbleTrigger = 0;
+    protected boolean scrobbleDone = true;
+    protected boolean scrobble;
 
-    public ExoPlayback(Context context, MusicManager manager, T player, boolean autoUpdateMetadata) {
+    public ExoPlayback(Context context, MusicManager manager, T player, boolean autoUpdateMetadata, boolean scrobble) {
         this.context = context;
         this.manager = manager;
         this.player = player;
         this.autoUpdateMetadata = autoUpdateMetadata;
+        this.scrobble = scrobble;
     }
 
     public void initialize() {
@@ -83,64 +86,66 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
 
     public abstract int getRepeatMode();
 
+    public void setScrobble(boolean scrobble) {
+        this.scrobble = scrobble;
+    }
+
     public void updateTrack(int index, Track track) {
-        int currentIndex = player.getCurrentWindowIndex();
+        int currentIndex = player.getCurrentMediaItemIndex();
 
         queue.set(index, track);
 
-        if(currentIndex == index)
+        if (currentIndex == index)
             manager.getMetadata().updateMetadata(this, track);
     }
 
     public Integer getCurrentTrackIndex() {
-        int index = player.getCurrentWindowIndex();
+        int index = player.getCurrentMediaItemIndex();
         return index < 0 || index >= queue.size() ? null : index;
     }
 
     public Track getCurrentTrack() {
-        int index = player.getCurrentWindowIndex();
+        int index = player.getCurrentMediaItemIndex();
         return index < 0 || index >= queue.size() ? null : queue.get(index);
     }
 
     public void skip(int index, Promise promise) {
-        if(index < 0 || index >= queue.size()) {
+        if (index < 0 || index >= queue.size()) {
             promise.reject("index_out_of_bounds", "The index is out of bounds");
             return;
         }
-
-        lastKnownWindow = player.getCurrentWindowIndex();
-        lastKnownPosition = player.getCurrentPosition();
-
+        snapShotMediaPosition();
         player.seekToDefaultPosition(index);
         promise.resolve(null);
     }
 
-    public void skipToPrevious(Promise promise) {
-        int prev = player.getPreviousWindowIndex();
+    protected void snapShotMediaPosition() {
+        lastKnownMediaIndex = player.getCurrentMediaItemIndex();
+        lastKnownMediaPosition = player.getCurrentPosition();
+    }
 
-        if(prev == C.INDEX_UNSET) {
+    public void skipToPrevious(Promise promise) {
+        int prev = player.getPreviousMediaItemIndex();
+
+        if (prev == C.INDEX_UNSET) {
             promise.reject("no_previous_track", "There is no previous track");
             return;
         }
 
-        lastKnownWindow = player.getCurrentWindowIndex();
-        lastKnownPosition = player.getCurrentPosition();
-
+        snapShotMediaPosition();
         player.seekToDefaultPosition(prev);
         promise.resolve(null);
     }
 
     public void skipToNext(Promise promise) {
-        int next = player.getNextWindowIndex();
+        int next = player.getNextMediaItemIndex();
 
-        if(next == C.INDEX_UNSET) {
+        if (next == C.INDEX_UNSET) {
             promise.reject("queue_exhausted", "There is no tracks left to play");
             return;
         }
 
-        lastKnownWindow = player.getCurrentWindowIndex();
-        lastKnownPosition = player.getCurrentPosition();
-
+        snapShotMediaPosition();
         player.seekToDefaultPosition(next);
         promise.resolve(null);
     }
@@ -154,19 +159,18 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
     }
 
     public void stop() {
-        lastKnownWindow = player.getCurrentWindowIndex();
-        lastKnownPosition = player.getCurrentPosition();
-
-        player.stop(false);
+        snapShotMediaPosition();
+        scrobbleTrackindex = C.INDEX_UNSET;
+        player.stop();
         player.setPlayWhenReady(false);
-        player.seekTo(lastKnownWindow,0);
+        player.seekTo(lastKnownMediaIndex, 0);
     }
 
     public void reset() {
-        lastKnownWindow = player.getCurrentWindowIndex();
-        lastKnownPosition = player.getCurrentPosition();
-
-        player.stop(true);
+        snapShotMediaPosition();
+        scrobbleTrackindex = C.INDEX_UNSET;
+        player.stop();
+        player.clearMediaItems();
         player.setPlayWhenReady(false);
     }
 
@@ -207,9 +211,7 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
     }
 
     public void seekTo(long time) {
-        lastKnownWindow = player.getCurrentWindowIndex();
-        lastKnownPosition = player.getCurrentPosition();
-
+        snapShotMediaPosition();
         player.seekTo(time);
     }
 
@@ -239,7 +241,7 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
     }
 
     public int getState() {
-        switch(player.getPlaybackState()) {
+        switch (player.getPlaybackState()) {
             case Player.STATE_BUFFERING:
                 return player.getPlayWhenReady() ? PlaybackStateCompat.STATE_BUFFERING : PlaybackStateCompat.STATE_CONNECTING;
             case Player.STATE_ENDED:
@@ -260,80 +262,115 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
     public void onTimelineChanged(@NonNull Timeline timeline, int reason) {
         Log.d(Utils.LOG, "onTimelineChanged: " + reason);
 
-        if((reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) && !timeline.isEmpty()) {
+        if ((reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) && !timeline.isEmpty()) {
             onPositionDiscontinuity(Player.DISCONTINUITY_REASON_INTERNAL);
         }
     }
 
     @Override
-    public void onPositionDiscontinuity(int reason) {
+    public void onPositionDiscontinuity(Player.PositionInfo oldPosition, Player.PositionInfo newPosition, int reason) {
         Log.d(Utils.LOG, "onPositionDiscontinuity: " + reason);
 
-        if(lastKnownWindow != player.getCurrentWindowIndex()) {
-            Integer prevIndex = lastKnownWindow == C.INDEX_UNSET ? null : lastKnownWindow;
+        if (lastKnownMediaIndex != player.getCurrentMediaItemIndex()) {
+            Integer prevIndex = lastKnownMediaIndex == C.INDEX_UNSET ? null : lastKnownMediaIndex;
             Integer nextIndex = getCurrentTrackIndex();
             Track next = nextIndex == null ? null : queue.get(nextIndex);
 
             // Track changed because it ended
             // We'll use its duration instead of the last known position
-            if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION && lastKnownWindow != C.INDEX_UNSET) {
-                if (lastKnownWindow >= player.getCurrentTimeline().getWindowCount()) return;
-                long duration = player.getCurrentTimeline().getWindow(lastKnownWindow, new Window()).getDurationMs();
-                if(duration != C.TIME_UNSET) lastKnownPosition = duration;
+            if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION && lastKnownMediaIndex != C.INDEX_UNSET) {
+                if (lastKnownMediaIndex >= player.getCurrentTimeline().getWindowCount()) return;
+                long duration = player.getCurrentTimeline().getWindow(lastKnownMediaIndex, new Window()).getDurationMs();
+                if (duration != C.TIME_UNSET) lastKnownMediaPosition = duration;
             }
 
-            manager.onTrackUpdate(prevIndex, lastKnownPosition, nextIndex, next);
-        } else if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION && lastKnownWindow == player.getCurrentWindowIndex()) {
+            manager.onTrackUpdate(prevIndex, lastKnownMediaPosition, nextIndex, next);
+        } else if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION && lastKnownMediaIndex == player.getCurrentMediaItemIndex()) {
             Integer nextIndex = getCurrentTrackIndex();
             Track next = nextIndex == null ? null : queue.get(nextIndex);
 
-            long duration = player.getCurrentTimeline().getWindow(lastKnownWindow, new Window()).getDurationMs();
-            if(duration != C.TIME_UNSET) lastKnownPosition = duration;
+            long duration = player.getCurrentTimeline().getWindow(lastKnownMediaIndex, new Window()).getDurationMs();
+            if (duration != C.TIME_UNSET) lastKnownMediaPosition = duration;
 
-            manager.onTrackUpdate(nextIndex, lastKnownPosition, nextIndex, next);
+            manager.onTrackUpdate(nextIndex, lastKnownMediaPosition, nextIndex, next);
         }
-
-        lastKnownWindow = player.getCurrentWindowIndex();
-        lastKnownPosition = player.getCurrentPosition();
+        snapShotMediaPosition();
     }
 
     @Override
     public void onTracksChanged(@NonNull Tracks tracks) {
         Log.d(Utils.LOG, "onTracksChanged");
-//        for(int i = 0; i < trackGroups.length; i++) {
-//            // Loop through all track groups.
-//            // As for the current implementation, there should be only one
-//            TrackGroup group = trackGroups.get(i);
-//
-//            for(int f = 0; f < group.length; f++) {
-//                // Loop through all formats inside the track group
-//                Format format = group.getFormat(f);
-//
-//                // Parse the metadata if it is present
-//                if (format.metadata != null) {
-//                    onMetadata(format.metadata);
-//                }
-//            }
-//        }
+        resetScrobble();
+    }
+
+    private final Runnable updateScrobbleAction = new Runnable() {
+        @Override
+        public void run() {
+            updateScrobble();
+        }
+    };
+
+    private void resetScrobble() {
+        scrobbleDuration = 0;
+        scrobbleTrigger = 0;
+        scrobbleTrackindex = C.INDEX_UNSET;
+        scrobbleDone = false;
+    }
+
+    private void updateScrobble() {
+        // Remove scheduled updates.
+        handler.removeCallbacks(updateScrobbleAction);
+        int state = getState();
+        if (Utils.isPlaying(state)) {
+            Integer trackIndex = getCurrentTrackIndex();
+            if (trackIndex == null || trackIndex < 0) {
+                return;
+            }
+            if (!trackIndex.equals(scrobbleTrackindex)) {
+                resetScrobble();
+                long duration = player.getDuration();
+                scrobbleTrigger = Math.min(duration / 2, 4 * 60 * 60 * 1000);
+                scrobbleTrackindex = trackIndex;
+                handler.postDelayed(updateScrobbleAction, 1000);
+                return;
+            }
+            if (scrobbleDone) {
+                return;
+            }
+            scrobbleDuration = scrobbleDuration + 1000;
+            if (scrobbleTrigger > 0 && scrobbleDuration > 0 && scrobbleDuration > scrobbleTrigger) {
+                scrobbleDone = true;
+                manager.onScrobble(trackIndex);
+                return;
+            }
+            handler.postDelayed(updateScrobbleAction, 1000);
+        }
     }
 
     @Override
-    public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+    public void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
+        Log.d(Utils.LOG, "onPlayWhenReadyChanged: " + playWhenReady + " reason: " + reason);
+    }
+
+    @Override
+    public void onPlaybackStateChanged(int playbackState) {
         int state = getState();
         Log.d(Utils.LOG, "onPlayerStateChanged: " + state + ", " + previousState);
-
-        if(state != previousState) {
-            if(Utils.isPlaying(state) && !Utils.isPlaying(previousState)) {
+        if (scrobble) {
+            updateScrobble();
+        }
+        if (state != previousState) {
+            if (Utils.isPlaying(state) && !Utils.isPlaying(previousState)) {
                 manager.onPlay();
-            } else if(Utils.isPaused(state) && !Utils.isPaused(previousState)) {
+            } else if (Utils.isPaused(state) && !Utils.isPaused(previousState)) {
                 manager.onPause();
-            } else if(Utils.isStopped(state) && !Utils.isStopped(previousState)) {
+            } else if (Utils.isStopped(state) && !Utils.isStopped(previousState)) {
                 manager.onStop();
             }
 
             manager.onStateChange(state);
 
-            if(previousState != PlaybackStateCompat.STATE_CONNECTING && state == PlaybackStateCompat.STATE_STOPPED) {
+            if (previousState != PlaybackStateCompat.STATE_CONNECTING && state == PlaybackStateCompat.STATE_STOPPED) {
                 Integer previous = getCurrentTrackIndex();
                 long position = getPosition();
                 manager.onTrackUpdate(previous, position, null, null);
@@ -352,11 +389,6 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
     @Override
     public void onPlaybackParametersChanged(@NonNull PlaybackParameters playbackParameters) {
         // Speed or pitch changes
-    }
-
-    @Override
-    public void onSeekProcessed() {
-        // Finished seeking
     }
 
     @Override
