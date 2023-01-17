@@ -241,7 +241,8 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
     }
 
     public int getState() {
-        switch (player.getPlaybackState()) {
+        int playbackState = player.getPlaybackState();
+        switch (playbackState) {
             case Player.STATE_BUFFERING:
                 return player.getPlayWhenReady() ? PlaybackStateCompat.STATE_BUFFERING : PlaybackStateCompat.STATE_CONNECTING;
             case Player.STATE_ENDED:
@@ -351,33 +352,43 @@ public abstract class ExoPlayback<T extends ExoPlayer> implements Listener, Meta
     @Override
     public void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
         Log.d(Utils.LOG, "onPlayWhenReadyChanged: " + playWhenReady + " reason: " + reason);
+        updateTrackPlayerState();
+    }
+
+    @Override
+    public void onIsPlayingChanged(boolean isPlaying) {
+        Log.d(Utils.LOG, "onIsPlayingChanged: " + isPlaying);
+        updateTrackPlayerState();
     }
 
     @Override
     public void onPlaybackStateChanged(int playbackState) {
         int state = getState();
         Log.d(Utils.LOG, "onPlayerStateChanged: " + state + ", " + previousState);
+        updateTrackPlayerState();
+    }
+
+    public void updateTrackPlayerState() {
+        int state = getState();
+        Log.d(Utils.LOG, "onPlayerStateChanged: " + state);
         if (scrobble) {
             updateScrobble();
         }
-        if (state != previousState) {
-            if (Utils.isPlaying(state) && !Utils.isPlaying(previousState)) {
+         if (state != previousState) {
+           manager.onStateChange(state);
+           if (Utils.isPlaying(state) && !Utils.isPlaying(previousState)) {
                 manager.onPlay();
             } else if (Utils.isPaused(state) && !Utils.isPaused(previousState)) {
                 manager.onPause();
             } else if (Utils.isStopped(state) && !Utils.isStopped(previousState)) {
                 manager.onStop();
             }
-
-            manager.onStateChange(state);
-
             if (previousState != PlaybackStateCompat.STATE_CONNECTING && state == PlaybackStateCompat.STATE_STOPPED) {
                 Integer previous = getCurrentTrackIndex();
                 long position = getPosition();
                 manager.onTrackUpdate(previous, position, null, null);
                 manager.onEnd(getCurrentTrackIndex(), getPosition());
             }
-
             previousState = state;
         }
     }

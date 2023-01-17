@@ -109,6 +109,7 @@ export interface MetadataOptions {
     ratingType?: RatingType;
     forwardJumpInterval?: number;
     backwardJumpInterval?: number;
+    scrobble?: boolean;
     likeOptions?: FeedbackOptions;
     dislikeOptions?: FeedbackOptions;
     bookmarkOptions?: FeedbackOptions;
