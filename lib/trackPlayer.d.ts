@@ -1,4 +1,4 @@
-import { MetadataOptions, PlayerOptions, Event, Track, State, TrackMetadataBase, NowPlayingMetadata, RepeatMode } from './interfaces';
+import { MetadataOptions, PlayerOptions, Event, Track, State, TrackMetadataBase, NowPlayingMetadata, RepeatMode, DownloadRequest, Download, PlaybackParameters } from "./interfaces";
 /**
  * Initializes the player with the specified options.
  */
@@ -121,11 +121,94 @@ declare function getState(): Promise<State>;
  * Gets the repeat mode.
  */
 declare function getRepeatMode(): Promise<RepeatMode>;
+/**
+ * Moves an item in the queue.
+ */
 declare function move(index: number, newIndex: number): Promise<void>;
+/**
+ * Shuffle the queue.
+ */
 declare function shuffle(): Promise<void>;
+/**
+ * Clear the queue.
+ */
 declare function clear(): Promise<void>;
+/**
+ * Gets the shuffle mode.
+ */
 declare function getShuffleModeEnabled(): Promise<boolean>;
+/**
+ * Sets the shuffle mode.
+ */
 declare function setShuffleModeEnabled(enabled: boolean): Promise<boolean>;
+/**
+ * Adds download requests.
+ */
+declare function addDownloads(requests: DownloadRequest[]): Promise<void>;
+/**
+ * Adds a download request.
+ */
+declare function addDownload(request: DownloadRequest): Promise<void>;
+/**
+ * Remove all downloads.
+ */
+declare function removeDownloads(): Promise<void>;
+/**
+ * Gets all downloads.
+ */
+declare function getDownloadsPaused(): Promise<boolean>;
+/**
+ * Gets all downloads.
+ */
+declare function getDownloads(): Promise<Download[]>;
+/**
+ * Gets all current downloads.
+ */
+declare function getCurrentDownloads(): Promise<Download[]>;
+/**
+ * Gets an download by id.
+ */
+declare function getDownload(id: string): Promise<Download | undefined>;
+/**
+ * Removes an download by id.
+ */
+declare function removeDownload(id: string): Promise<Download | undefined>;
+/**
+ * Toggle downloading.
+ */
+declare function toggleDownloadsPaused(): Promise<void>;
+/**
+ * Resume downloading.
+ */
+declare function resumeDownloads(): Promise<void>;
+/**
+ * Pause downloading.
+ */
+declare function pauseDownloads(): Promise<void>;
+/**
+ * Gets Playback Parameters.
+ */
+declare function getPlaybackParameters(): Promise<PlaybackParameters>;
+/**
+ * Sets Playback Parameters.
+ */
+declare function setPlaybackParameters(paybackParameters: PlaybackParameters): Promise<void>;
+/**
+ * Gets Playback Speed.
+ */
+declare function getPlaybackSpeed(): Promise<number>;
+/**
+ * Sets Playback Speed.
+ */
+declare function setPlaybackSpeed(speed: number): Promise<void>;
+/**
+ * Gets Playback Pitch.
+ */
+declare function getPlaybackPitch(): Promise<number>;
+/**
+ * Sets Playback Pitch.
+ */
+declare function setPlaybackPitch(pitch: number): Promise<void>;
 declare const _default: {
     setupPlayer: typeof setupPlayer;
     destroy: typeof destroy;
@@ -154,6 +237,9 @@ declare const _default: {
     setVolume: typeof setVolume;
     setRate: typeof setRate;
     setRepeatMode: typeof setRepeatMode;
+    setPlaybackParameters: typeof setPlaybackParameters;
+    setPlaybackSpeed: typeof setPlaybackSpeed;
+    setPlaybackPitch: typeof setPlaybackPitch;
     getVolume: typeof getVolume;
     getRate: typeof getRate;
     getTrack: typeof getTrack;
@@ -165,5 +251,19 @@ declare const _default: {
     getState: typeof getState;
     getShuffleModeEnabled: typeof getShuffleModeEnabled;
     getRepeatMode: typeof getRepeatMode;
+    getPlaybackParameters: typeof getPlaybackParameters;
+    getPlaybackSpeed: typeof getPlaybackSpeed;
+    getPlaybackPitch: typeof getPlaybackPitch;
+    addDownload: typeof addDownload;
+    addDownloads: typeof addDownloads;
+    removeDownload: typeof removeDownload;
+    removeDownloads: typeof removeDownloads;
+    getDownloadsPaused: typeof getDownloadsPaused;
+    getCurrentDownloads: typeof getCurrentDownloads;
+    getDownloads: typeof getDownloads;
+    getDownload: typeof getDownload;
+    toggleDownloadsPaused: typeof toggleDownloadsPaused;
+    resumeDownloads: typeof resumeDownloads;
+    pauseDownloads: typeof pauseDownloads;
 };
 export default _default;

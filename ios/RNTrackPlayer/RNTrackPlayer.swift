@@ -89,12 +89,25 @@ public class RNTrackPlayer: RCTEventEmitter {
             "playback-state",
             "playback-error",
             "playback-track-changed",
+            "playback-parameters-changed",
             "playback-metadata-received",
-
+            "queue-changed",
+            "downloads-changed",
+            "download-changed",
+            "downloads-paused-changed",
+            "download-progress-changed",
+            "repeat-changed",
+            "shuffle-changed",
+            "scrobble",
             "remote-stop",
             "remote-pause",
             "remote-play",
+            "remote-skip",
+            "remote-set-rating",
+            "remote-play-id",
+            "remote-play-search",
             "remote-duck",
+            "remote-previous",
             "remote-next",
             "remote-seek",
             "remote-previous",
@@ -347,6 +360,7 @@ public class RNTrackPlayer: RCTEventEmitter {
             index = trackIndex.intValue
             try? player.add(items: tracks, at: trackIndex.intValue)
         }
+        handleQueueChange()
         resolve(index)
     }
 
@@ -356,8 +370,44 @@ public class RNTrackPlayer: RCTEventEmitter {
 
         for index in indexes {
             // we do not allow removal of the current item
-            if index == player.currentIndex { continue }
             try? player.removeItem(at: index)
+        }
+
+        handleQueueChange()
+        resolve(NSNull())
+    }
+
+    @objc(move:newindex:resolver:rejecter:)
+    public func move(for index: NSNumber, for newindex: NSNumber,
+                     resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        print("Moving track:", index.intValue, newindex.intValue)
+        if (index.intValue < 0 || index.intValue >= player.items.count) {
+            reject("index_out_of_bounds", "The track index is out of bounds", nil)
+            return
+        }
+       if (newindex.intValue < 0 || newindex.intValue >= player.items.count) {
+            reject("index_out_of_bounds", "The new track index is out of bounds", nil)
+            return
+        }
+
+        try? player.moveItem(fromIndex: index.intValue, toIndex: newindex.intValue)
+ 
+        handleQueueChange()
+        resolve(NSNull())
+    }
+
+    @objc(updateMetadataForTrack:metadata:resolver:rejecter:)
+    public func updateMetadata(for trackIndex: NSNumber, metadata: [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        if (trackIndex.intValue < 0 || trackIndex.intValue >= player.items.count) {
+            reject("index_out_of_bounds", "The track index is out of bounds", nil)
+            return
+        }
+
+        let track = player.items[trackIndex.intValue] as! Track
+        track.updateMetadata(dictionary: metadata)
+
+        if (player.currentIndex == trackIndex.intValue) {
+            Metadata.update(for: player, with: metadata)
         }
 
         resolve(NSNull())
@@ -404,6 +454,17 @@ public class RNTrackPlayer: RCTEventEmitter {
         }
     }
 
+    @objc(clear:rejecter:)
+    public func clear(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        print("Clear queue.")
+        player.stop()
+        resolve(NSNull())
+        DispatchQueue.main.async {
+            UIApplication.shared.endReceivingRemoteControlEvents();
+        }
+        handleQueueChange()
+  }
+
     @objc(reset:rejecter:)
     public func reset(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         print("Resetting player.")
@@ -412,6 +473,7 @@ public class RNTrackPlayer: RCTEventEmitter {
         DispatchQueue.main.async {
             UIApplication.shared.endReceivingRemoteControlEvents();
         }
+        handleQueueChange()
     }
 
     @objc(play:rejecter:)
@@ -442,10 +504,31 @@ public class RNTrackPlayer: RCTEventEmitter {
         player.seek(to: time)
         resolve(NSNull())
     }
+    
+    @objc(shuffle:rejecter:)
+    public func shuffle(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        print("Shuffling")
+        // TODO: shuffle IOS
+        resolve(NSNull())
+    }
+
+    @objc(getShuffleModeEnabled:rejecter:)
+    public func getShuffleModeEnabled(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        // TODO: setShuffleModeEnabled IOS
+        resolve(NSNull())
+    }
+
+    @objc(setShuffleModeEnabled:resolver:rejecter:)
+    public func setShuffleModeEnabled(shuffleEnabled: Bool, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        // TODO: getShuffleModeEnabled IOS
+        resolve(false)
+    }
 
     @objc(setRepeatMode:resolver:rejecter:)
     public func setRepeatMode(repeatMode: NSNumber, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         player.repeatMode = SwiftAudioEx.RepeatMode(rawValue: repeatMode.intValue) ?? .off
+        print("Set current repeatMode \(player.repeatMode)")
+        sendEvent(withName: "repeat-changed", body: ["mode": player.repeatMode.rawValue])
         resolve(NSNull())
     }
 
@@ -468,19 +551,57 @@ public class RNTrackPlayer: RCTEventEmitter {
         resolve(player.volume)
     }
 
-    @objc(setRate:resolver:rejecter:)
-    public func setRate(rate: Float, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
-        print("Setting rate to \(rate)")
-        player.rate = rate
+    
+    @objc(setPlaybackParameters:resolver:rejecter:)
+    public func setPlaybackParameters(params:  [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        player.rate = params["speed"] as! Float
+        handlePlaybackParamterChange()
+        resolve(NSNull())
+    }
+    
+    public func handlePlaybackParamterChange() {
+        sendEvent(withName: "playback-parameters-changed", body: ["speed": player.rate, "pitch": 1.0])
+    }
+  
+    public func handleQueueChange() {
+        sendEvent(withName: "queue-changed", body: nil)
+    }
+  
+    @objc(getPlaybackParameters:rejecter:)
+    public func getPlaybackParameters(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        // TODO: getPlaybackParameters pitch
+        resolve(["speed": player.rate, "pitch": 1.0])
+    }
+
+    @objc(setPlaybackSpeed:resolver:rejecter:)
+    public func setPlaybackSpeed(speed: Float, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        print("Setting speed to \(speed)")
+        player.rate = speed
+        handlePlaybackParamterChange()
         resolve(NSNull())
     }
 
-    @objc(getRate:rejecter:)
-    public func getRate(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
-        print("Getting current rate")
+    @objc(getPlaybackSpeed:rejecter:)
+    public func getPlaybackSpeed(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        print("Getting current speed")
         resolve(player.rate)
     }
 
+    @objc(setPlaybackPitch:resolver:rejecter:)
+    public func setPlaybackPitch(pitch: Float, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        print("Setting pitch to \(pitch)")
+        // TODO: setPlaybackPitch IOS
+     handlePlaybackParamterChange()
+        resolve(NSNull())
+    }
+
+    @objc(getPlaybackPitch:rejecter:)
+    public func getPlaybackPitch(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        print("Getting current pitch")
+        // TODO: getPlaybackPitch IOS
+        resolve(1.0)
+    }
+ 
     @objc(getTrack:resolver:rejecter:)
     public func getTrack(index: NSNumber, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         if (index.intValue >= 0 && index.intValue < player.items.count) {
@@ -528,23 +649,6 @@ public class RNTrackPlayer: RCTEventEmitter {
         resolve(player.playerState.rawValue)
     }
 
-    @objc(updateMetadataForTrack:metadata:resolver:rejecter:)
-    public func updateMetadata(for trackIndex: NSNumber, metadata: [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
-        if (trackIndex.intValue < 0 || trackIndex.intValue >= player.items.count) {
-            reject("index_out_of_bounds", "The track index is out of bounds", nil)
-            return
-        }
-
-        let track = player.items[trackIndex.intValue] as! Track
-        track.updateMetadata(dictionary: metadata)
-
-        if (player.currentIndex == trackIndex.intValue) {
-            Metadata.update(for: player, with: metadata)
-        }
-
-        resolve(NSNull())
-    }
-
     @objc(clearNowPlayingMetadata:rejecter:)
     public func clearNowPlayingMetadata(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         player.nowPlayingInfoController.clear()
@@ -554,6 +658,59 @@ public class RNTrackPlayer: RCTEventEmitter {
     public func updateNowPlayingMetadata(metadata: [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         Metadata.update(for: player, with: metadata)
     }
+    
+ 
+    @objc(getDownloadsPaused:rejecter:)
+    public func getDownloadsPaused(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve(true)
+    }
+
+    @objc(toggleDownloadsPaused:rejecter:)
+    public func toggleDownloadsPaused(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve(NSNull())
+    }
+
+    @objc(pauseDownloads:rejecter:)
+    public func pauseDownloads(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve(NSNull())
+    }
+
+    @objc(resumeDownloads:rejecter:)
+    public func resumeDownloads(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve(NSNull())
+    }
+
+
+    @objc(removeDownloads:rejecter:)
+    public func removeDownloads(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve(NSNull())
+    }
+
+    @objc(getCurrentDownloads:rejecter:)
+    public func getCurrentDownloads(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve([])
+    }
+
+    @objc(getDownloads:rejecter:)
+    public func getDownloads(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve([])
+    }
+    
+    @objc(addDownloads:resolver:rejecter:)
+    public func addDownloads(downloadRequests: [[String: Any]], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve(NSNull())
+    }
+     
+    @objc(removeDownload:resolver:rejecter:)
+    public func removeDownload(downloadid: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve(NSNull())
+    }
+
+    @objc(getDownload:resolver:rejecter:)
+    public func getDownload(downloadid: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve(NSNull())
+    }
+
 
     // MARK: - QueuedAudioPlayer Event Handlers
 

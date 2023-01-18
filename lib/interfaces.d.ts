@@ -133,7 +133,14 @@ export declare enum Event {
     PlaybackError = "playback-error",
     PlaybackQueueEnded = "playback-queue-ended",
     PlaybackTrackChanged = "playback-track-changed",
+    PlaybackParametersChanged = "playback-parameters-changed",
     QueueChanged = "queue-changed",
+    DownloadsChanged = "downloads-changed",
+    DownloadsPausedChanged = "downloads-paused-changed",
+    DownloadChanged = "download-changed",
+    DownloadProgressChanged = "download-progress-changed",
+    ShuffleModeChanged = "shuffle-changed",
+    RepeatModeChanged = "repeat-changed",
     Scrobble = "scrobble",
     PlaybackMetadataReceived = "playback-metadata-received",
     RemotePlay = "remote-play",
@@ -178,6 +185,15 @@ export declare enum State {
     Buffering,
     Connecting
 }
+export declare enum DownloadState {
+    Queued,
+    Stopped,
+    Downloading,
+    Completed,
+    Failed,
+    Removing,
+    Restarting
+}
 export interface TrackMetadataBase {
     title?: string;
     album?: string;
@@ -192,6 +208,26 @@ export interface TrackMetadataBase {
 }
 export interface NowPlayingMetadata extends TrackMetadataBase {
     elapsedTime?: number;
+}
+export interface DownloadRequest {
+    url: string;
+    id: string;
+}
+export interface Download {
+    id: string;
+    url: string;
+    state: number;
+    contentLength: number;
+    bytesDownloaded: number;
+    percentDownloaded: number;
+    failureReason: number;
+    stopReason: number;
+    startTimeMs: number;
+    updateTimeMs: number;
+}
+export interface PlaybackParameters {
+    speed: number;
+    pitch: number;
 }
 export interface Track extends TrackMetadataBase {
     url: string | ResourceObject;

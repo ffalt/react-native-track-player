@@ -17,7 +17,12 @@ import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.jstasks.HeadlessJsTaskConfig;
+
+import com.guichaguri.trackplayer.downloader.AudioDownloadTracker;
+import com.guichaguri.trackplayer.downloader.DownloadUtils;
 import com.guichaguri.trackplayer.service.Utils;
+
+import static android.app.Service.START_NOT_STICKY;
 
 /**
  * @author Guichaguri
@@ -26,6 +31,7 @@ public class MusicService extends HeadlessJsTaskService {
 
     MusicManager manager;
     Handler handler;
+    AudioDownloadTracker tracker;
 
     @Nullable
     @Override
@@ -87,7 +93,7 @@ public class MusicService extends HeadlessJsTaskService {
     @Override
     public IBinder onBind(Intent intent) {
         if(Utils.CONNECT_INTENT.equals(intent.getAction())) {
-            return new MusicBinder(this, manager);
+            return new MusicBinder(this, manager, tracker);
         }
 
         return super.onBind(intent);
@@ -98,16 +104,17 @@ public class MusicService extends HeadlessJsTaskService {
         if(intent != null && Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
             // Check if the app is on background, then starts a foreground service and then ends it right after
             onStartForeground();
-            
+
             if(manager != null) {
                 MediaButtonReceiver.handleIntent(manager.getMetadata().getSession(), intent);
             }
-            
+
             return START_NOT_STICKY;
         }
 
         manager = new MusicManager(this);
         handler = new Handler();
+        tracker = new AudioDownloadTracker((Context) this, manager);
 
         super.onStartCommand(intent, flags, startId);
         return START_NOT_STICKY;

@@ -2,8 +2,11 @@ package com.guichaguri.trackplayer.service;
 
 import android.os.Binder;
 import android.os.Bundle;
+
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableMap;
+
+import com.guichaguri.trackplayer.downloader.AudioDownloadTracker;
 import com.guichaguri.trackplayer.service.metadata.MetadataManager;
 import com.guichaguri.trackplayer.service.models.NowPlayingMetadata;
 import com.guichaguri.trackplayer.service.player.ExoPlayback;
@@ -15,10 +18,12 @@ public class MusicBinder extends Binder {
 
     private final MusicService service;
     private final MusicManager manager;
+    private final AudioDownloadTracker tracker;
 
-    public MusicBinder(MusicService service, MusicManager manager) {
+    public MusicBinder(MusicService service, MusicManager manager, AudioDownloadTracker tracker) {
         this.service = service;
         this.manager = manager;
+        this.tracker = tracker;
     }
 
     public void post(Runnable r) {
@@ -29,8 +34,8 @@ public class MusicBinder extends Binder {
         ExoPlayback playback = manager.getPlayback();
 
         // TODO remove?
-        if(playback == null) {
-            playback = manager.createLocalPlayback(new Bundle());
+        if (playback == null) {
+            playback = manager.createPlayback(new Bundle());
             manager.switchPlayback(playback);
         }
 
@@ -38,7 +43,7 @@ public class MusicBinder extends Binder {
     }
 
     public void setupPlayer(Bundle bundle, Promise promise) {
-        manager.switchPlayback(manager.createLocalPlayback(bundle));
+        manager.switchPlayback(manager.createPlayback(bundle));
         promise.resolve(null);
     }
 
@@ -70,4 +75,7 @@ public class MusicBinder extends Binder {
         service.stopSelf();
     }
 
+    public AudioDownloadTracker getDownloadTracker() {
+        return tracker;
+    }
 }

@@ -1,58 +1,54 @@
 {
-  "name": "example",
+  "name": "TrackPlayerApp",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "postinstall": "rm -rf node_modules/react-native-track-player/{example,node_modules}",
     "android": "react-native run-android && react-native log-android",
+    "clean:gradle": "cd android && rm -Rf .gradle && rm -Rf app/build && ./gradlew clean",
     "ios": "react-native run-ios",
-    "windows": "react-native run-windows",
+    "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "clean:gradle": "cd android && rm -Rf .gradle && rm -Rf app/build && ./gradlew clean",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "update": "yarn remove react-native-track-player && yarn add file:..",
+    "update:ios": "yarn rimraf node_modules/react-native-track-player/ios && yarn cpx '../ios/**' node_modules/react-native-track-player/ios",
+    "update:android": "yarn rimraf node_modules/react-native-track-player/android && yarn cpx '../android/**' node_modules/react-native-track-player/android",
+    "update:lib": "yarn rimraf node_modules/react-native-track-player/lib && yarn cpx '../lib/**' node_modules/react-native-track-player/lib",
     "sync:ios": "yarn rimraf ../ios && yarn cpx 'node_modules/react-native-track-player/ios/**' ../ios",
     "sync:android": "yarn rimraf ../android && yarn cpx 'node_modules/react-native-track-player/android/**' ../android",
     "sync": "yarn sync:ios && yarn sync:android"
   },
   "dependencies": {
-    "@react-native-community/slider": "4.4.0",
+    "@react-native-community/slider": "4.4.1",
+    "@react-navigation/bottom-tabs": "6.5.3",
+    "@react-navigation/native": "6.1.2",
+    "ios": "^0.0.1",
     "react": "18.2.0",
-    "react-native": "0.70.6",
-    "react-native-track-player": "file:..",
-    "react-native-windows": "^0.70.10"
+    "react-native": "0.71.1",
+    "react-native-safe-area-context": "4.5.0",
+    "react-native-screens": "3.19.0",
+    "react-native-track-player": "file:.."
   },
   "devDependencies": {
-    "@babel/core": "^7.20.12",
-    "@babel/runtime": "^7.20.7",
-    "@react-native-community/cli": "^10.1.0",
-    "@react-native-community/eslint-config": "^3.2.0",
-    "@types/jest": "^29.2.5",
-    "@types/react-native": "^0.70.8",
-    "@types/react-test-renderer": "^18.0.0",
-    "babel-jest": "^29.3.1",
-    "cpx": "^1.5.0",
-    "eslint": "^8.31.0",
-    "jest": "^29.3.1",
-    "metro-react-native-babel-preset": "^0.73.7",
-    "react-native-codegen": "^0.71.3",
+    "@babel/core": "7.20.12",
+    "@babel/preset-env": "7.20.2",
+    "@babel/runtime": "7.20.13",
+    "@react-native-community/eslint-config": "3.2.0",
+    "@tsconfig/react-native": "2.0.3",
+    "@types/jest": "29.2.6",
+    "@types/react": "18.0.27",
+    "@types/react-test-renderer": "18.0.0",
+    "babel-jest": "29.3.1",
+    "cpx": "1.5.0",
+    "eslint": "8.32.0",
+    "jest": "29.3.1",
+    "metro-react-native-babel-preset": "0.74.1",
+    "prettier": "2.8.3",
     "react-test-renderer": "18.2.0",
-    "rimraf": "^3.0.2",
-    "typescript": "^4.9.4"
-  },
-  "resolutions": {
-    "@types/react": "^17"
+    "rimraf": "4.1.1",
+    "typescript": "4.8.4"
   },
   "jest": {
-    "preset": "react-native",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
-  },
-  "isSwift": true
+    "preset": "react-native"
+  }
 }

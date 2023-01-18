@@ -29,7 +29,6 @@ import com.guichaguri.trackplayer.module.MusicEvents;
 import com.guichaguri.trackplayer.service.metadata.MetadataManager;
 import com.guichaguri.trackplayer.service.models.Track;
 import com.guichaguri.trackplayer.service.player.ExoPlayback;
-import com.guichaguri.trackplayer.service.player.LocalPlayback;
 
 import static com.google.android.exoplayer2.DefaultLoadControl.*;
 
@@ -122,7 +121,7 @@ public class MusicManager implements OnAudioFocusChangeListener {
         }
     }
 
-    public LocalPlayback createLocalPlayback(Bundle options) {
+    public ExoPlayback createPlayback(Bundle options) {
         boolean autoUpdateMetadata = options.getBoolean("autoUpdateMetadata", true);
         int minBuffer = (int) Utils.toMillis(options.getDouble("minBuffer", Utils.toSeconds(DEFAULT_MIN_BUFFER_MS)));
         int maxBuffer = (int) Utils.toMillis(options.getDouble("maxBuffer", Utils.toSeconds(DEFAULT_MAX_BUFFER_MS)));
@@ -143,7 +142,7 @@ public class MusicManager implements OnAudioFocusChangeListener {
         player.setAudioAttributes(new com.google.android.exoplayer2.audio.AudioAttributes.Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setUsage(C.USAGE_MEDIA).build(), false);
 
-        return new LocalPlayback(service, this, player, cacheMaxSize, autoUpdateMetadata, scrobble);
+        return new ExoPlayback(service, this, player, cacheMaxSize, autoUpdateMetadata, scrobble);
     }
 
     @SuppressLint("WakelockTimeout")
@@ -222,9 +221,60 @@ public class MusicManager implements OnAudioFocusChangeListener {
 
     public void onQueueChange() {
         Log.d(Utils.LOG, "onQueueChange");
+        service.emit(MusicEvents.QUEUE_CHANGED, null);
+    }
+
+    public void onShuffleChange(boolean value) {
+        Log.d(Utils.LOG, "onShuffleChange");
 
         Bundle bundle = new Bundle();
-        service.emit(MusicEvents.QUEUE_CHANGED, bundle);
+        bundle.putBoolean("enabled", value);
+        service.emit(MusicEvents.SHUFFLE_CHANGED, bundle);
+    }
+
+    public void onRepeatModeChange(int repeatMode) {
+        Log.d(Utils.LOG, "onRepeatModeChange");
+        Bundle bundle = new Bundle();
+        bundle.putInt("mode", repeatMode);
+        service.emit(MusicEvents.REPEATMODE_CHANGED, bundle);
+    }
+
+    public void onDownloadsPausedChange(boolean downloadsPaused) {
+        Log.d(Utils.LOG, "onDownloadsPausedChange");
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("paused", downloadsPaused);
+        service.emit(MusicEvents.DOWNLOADS_PAUSED_CHANGED, bundle);
+    }
+
+    public void onDownloadStateChange(String id, int state) {
+        Log.d(Utils.LOG, "onDownloadStateChange");
+        Bundle bundle = new Bundle();
+        bundle.putString("id", id);
+        bundle.putInt("state", state);
+        service.emit(MusicEvents.DOWNLOAD_CHANGED, bundle);
+    }
+
+    public void onDownloadProgressStateChange(String id, long contentLength, long bytesDownloaded, float percentDownloaded) {
+        Log.d(Utils.LOG, "onDownloadProgressStateChange");
+        Bundle bundle = new Bundle();
+        bundle.putString("id", id);
+        bundle.putLong("contentLength", contentLength);
+        bundle.putLong("bytesDownloaded", bytesDownloaded);
+        bundle.putFloat("percentDownloaded", percentDownloaded);
+        service.emit(MusicEvents.DOWNLOAD_PROGRESS_CHANGED, bundle);
+    }
+
+    public void onDownloadsChange() {
+        Log.d(Utils.LOG, "onDownloadsChange");
+        service.emit(MusicEvents.DOWNLOADS_CHANGED, null);
+    }
+
+    public void onPlaybackParameterChange(float speed, float pitch) {
+        Log.d(Utils.LOG, "onPlaybackParameterChange");
+        Bundle bundle = new Bundle();
+        bundle.putFloat("speed", speed);
+        bundle.putFloat("pitch", pitch);
+        service.emit(MusicEvents.PLAYBACK_PARAMETERS_CHANGED, bundle);
     }
 
     public void onScrobble(Integer trackIndex) {
@@ -399,4 +449,5 @@ public class MusicManager implements OnAudioFocusChangeListener {
         if (wifiLock.isHeld()) wifiLock.release();
         if (wakeLock.isHeld()) wakeLock.release();
     }
+
 }

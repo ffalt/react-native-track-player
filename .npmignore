@@ -1,6 +1,7 @@
 # Excluded from NPM
 
 example/
+local/
 docs/
 _Pods.xcodeproj
 

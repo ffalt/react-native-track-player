@@ -19,7 +19,7 @@ import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.upstream.*;
 import com.google.android.exoplayer2.util.Util;
 import com.guichaguri.trackplayer.service.Utils;
-import com.guichaguri.trackplayer.service.player.LocalPlayback;
+import com.guichaguri.trackplayer.service.player.ExoPlayback;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -125,7 +125,7 @@ public class Track extends TrackMetadata {
         return new QueueItem(descr, queueId);
     }
 
-    public MediaSource toMediaSource(Context ctx, LocalPlayback playback) {
+    public MediaSource toMediaSource(Context ctx, ExoPlayback playback) {
         // Updates the user agent if not set
         if (userAgent == null || userAgent.isEmpty())
             userAgent = Util.getUserAgent(ctx, "react-native-track-player");

@@ -35,8 +35,15 @@ public class MusicEvents extends BroadcastReceiver {
     public static final String PLAYBACK_QUEUE_ENDED = "playback-queue-ended";
     public static final String PLAYBACK_METADATA = "playback-metadata-received";
     public static final String PLAYBACK_ERROR = "playback-error";
+    public static final String PLAYBACK_PARAMETERS_CHANGED = "playback-parameters-changed";
 
     public static final String QUEUE_CHANGED = "queue-changed";
+    public static final String DOWNLOADS_CHANGED = "downloads-changed";
+    public static final String DOWNLOAD_CHANGED = "download-changed";
+    public static final String DOWNLOADS_PAUSED_CHANGED = "downloads-paused-changed";
+    public static final String DOWNLOAD_PROGRESS_CHANGED = "download-progress-changed";
+    public static final String REPEATMODE_CHANGED = "repeat-changed";
+    public static final String SHUFFLE_CHANGED = "shuffle-changed";
     public static final String SCROBBLE = "scrobble";
 
     private final ReactContext reactContext;
