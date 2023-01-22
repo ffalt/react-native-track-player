@@ -74,10 +74,6 @@ declare function seekTo(position: number): Promise<void>;
  */
 declare function setVolume(level: number): Promise<void>;
 /**
- * Sets the playback rate.
- */
-declare function setRate(rate: number): Promise<void>;
-/**
  * Sets the repeat mode.
  */
 declare function setRepeatMode(mode: RepeatMode): Promise<RepeatMode>;
@@ -85,10 +81,6 @@ declare function setRepeatMode(mode: RepeatMode): Promise<RepeatMode>;
  * Gets the volume of the player (a number between 0 and 1).
  */
 declare function getVolume(): Promise<number>;
-/**
- * Gets the playback rate, where 1 is the regular speed.
- */
-declare function getRate(): Promise<number>;
 /**
  * Gets a track object from the queue.
  */
@@ -145,10 +137,6 @@ declare function setShuffleModeEnabled(enabled: boolean): Promise<boolean>;
  * Adds download requests.
  */
 declare function addDownloads(requests: DownloadRequest[]): Promise<void>;
-/**
- * Adds a download request.
- */
-declare function addDownload(request: DownloadRequest): Promise<void>;
 /**
  * Remove all downloads.
  */
@@ -235,13 +223,11 @@ declare const _default: {
     stop: typeof stop;
     seekTo: typeof seekTo;
     setVolume: typeof setVolume;
-    setRate: typeof setRate;
     setRepeatMode: typeof setRepeatMode;
     setPlaybackParameters: typeof setPlaybackParameters;
     setPlaybackSpeed: typeof setPlaybackSpeed;
     setPlaybackPitch: typeof setPlaybackPitch;
     getVolume: typeof getVolume;
-    getRate: typeof getRate;
     getTrack: typeof getTrack;
     getQueue: typeof getQueue;
     getCurrentTrack: typeof getCurrentTrack;
@@ -254,7 +240,6 @@ declare const _default: {
     getPlaybackParameters: typeof getPlaybackParameters;
     getPlaybackSpeed: typeof getPlaybackSpeed;
     getPlaybackPitch: typeof getPlaybackPitch;
-    addDownload: typeof addDownload;
     addDownloads: typeof addDownloads;
     removeDownload: typeof removeDownload;
     removeDownloads: typeof removeDownloads;
