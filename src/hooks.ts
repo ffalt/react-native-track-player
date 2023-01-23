@@ -293,13 +293,13 @@ export function useTrackPlayerCurrentDownloads(): Array<Download> | undefined {
   return downloads;
 }
 
-export function useTrackPlayerDownload(url: string): Download | undefined {
+export function useTrackPlayerDownload(id: string): Download | undefined {
   const [download, setDownload] = useState<Download | undefined>();
 
   useEffect(() => {
     let didCancel = false;
     const fetchDownloads = async (): Promise<void> => {
-      const fetched = await TrackPlayer.getDownload(url);
+      const fetched = await TrackPlayer.getDownload(id);
       if (!didCancel) {
         setDownload(fetched);
       }
@@ -311,7 +311,7 @@ export function useTrackPlayerDownload(url: string): Download | undefined {
   }, []);
 
   useTrackPlayerEvent(Event.DownloadChanged, async () => {
-    setDownload(await TrackPlayer.getDownload(url));
+    setDownload(await TrackPlayer.getDownload(id));
   });
 
   return download;
