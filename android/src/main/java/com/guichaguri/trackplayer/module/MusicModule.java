@@ -369,7 +369,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     @ReactMethod
     public void setDownloadHeaders(ReadableMap map, final Promise callback) {
         waitForConnection(() -> {
-            Bundle bundle = Arguments.toBundle(headers);
+            Bundle bundle = Arguments.toBundle(map);
             HashMap headers = new HashMap<>();
             for (String header : bundle.keySet()) {
                 headers.put(header, bundle.getString(header));
