@@ -28,7 +28,7 @@ export declare function useTrackPlayerQueue(): Array<Track> | undefined;
 export declare function useTrackPlayerDownloads(): Array<Download> | undefined;
 export declare function useTrackPlayerDownloadsPaused(): boolean;
 export declare function useTrackPlayerCurrentDownloads(): Array<Download> | undefined;
-export declare function useTrackPlayerDownload(url: string): Download | undefined;
+export declare function useTrackPlayerDownload(id: string): Download | undefined;
 export declare const useTrackPlayerPlaybackStateIs: (...states: Array<State>) => boolean;
 export declare const useTrackPlayerPlaybackStateIsPlaying: () => boolean;
 export declare const useTrackPlayerProgressPercent: (interval?: number) => {

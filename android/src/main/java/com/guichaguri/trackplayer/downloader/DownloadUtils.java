@@ -36,6 +36,7 @@ import java.io.File;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 import androidx.annotation.NonNull;
@@ -49,7 +50,7 @@ public final class DownloadUtils {
   private static final String DOWNLOAD_CONTENT_DIRECTORY = "downloads";
 
   private static @NonNull DataSource.Factory dataSourceFactory;
-  private static @NonNull DataSource.Factory httpDataSourceFactory;
+  private static @NonNull DefaultHttpDataSource.Factory httpDataSourceFactory;
   private static @NonNull DatabaseProvider databaseProvider;
   private static @NonNull File downloadDirectory;
   private static @NonNull Cache downloadCache;
@@ -73,7 +74,7 @@ public final class DownloadUtils {
         .setExtensionRendererMode(extensionRendererMode);
   }
 
-  public static synchronized DataSource.Factory getHttpDataSourceFactory(Context context) {
+  public static synchronized DefaultHttpDataSource.Factory getHttpDataSourceFactory() {
     if (httpDataSourceFactory == null) {
         // We don't want to use Cronet, or we failed to instantiate a CronetEngine.
         CookieManager cookieManager = new CookieManager();
@@ -84,12 +85,16 @@ public final class DownloadUtils {
     return httpDataSourceFactory;
   }
 
+  public static synchronized void setDownloadHeaders(Map<String, String> headers) {
+    getHttpDataSourceFactory().setDefaultRequestProperties(headers);
+  }
+
   // ** Returns a {@link DataSource.Factory}. */
   public static synchronized DataSource.Factory getDataSourceFactory(Context context) {
     if (dataSourceFactory == null) {
       context = context.getApplicationContext();
       DefaultDataSource.Factory upstreamFactory =
-          new DefaultDataSource.Factory(context, getHttpDataSourceFactory(context));
+          new DefaultDataSource.Factory(context, getHttpDataSourceFactory());
       dataSourceFactory = buildReadOnlyCacheDataSource(upstreamFactory, getDownloadCache(context));
     }
     return dataSourceFactory;
@@ -127,7 +132,7 @@ public final class DownloadUtils {
               context,
               getDatabaseProvider(context),
               getDownloadCache(context),
-              getHttpDataSourceFactory(context),
+              getHttpDataSourceFactory(),
               Executors.newFixedThreadPool(/* nThreads= */ 6));
     }
   }

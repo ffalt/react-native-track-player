@@ -272,9 +272,9 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void removeDownloads(final Promise callback) {
+    public void clearDownloads(final Promise callback) {
         waitForConnection(() -> {
-            binder.getDownloadTracker().removeDownloads();
+            binder.getDownloadTracker().clearDownloads();
             callback.resolve(null);
         });
     }
@@ -283,7 +283,6 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     public void resumeDownloads(final Promise callback) {
         waitForConnection(() -> {
             binder.getDownloadTracker().resumeDownloads();
-            ;
             callback.resolve(null);
         });
     }
@@ -292,7 +291,6 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     public void pauseDownloads(final Promise callback) {
         waitForConnection(() -> {
             binder.getDownloadTracker().pauseDownloads();
-            ;
             callback.resolve(null);
         });
     }
@@ -365,6 +363,19 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
                 playback.updateTrack(index, track);
                 callback.resolve(null);
             }
+        });
+    }
+
+    @ReactMethod
+    public void setDownloadHeaders(ReadableMap map, final Promise callback) {
+        waitForConnection(() -> {
+            Bundle bundle = Arguments.toBundle(headers);
+            HashMap headers = new HashMap<>();
+            for (String header : bundle.keySet()) {
+                headers.put(header, bundle.getString(header));
+            }
+            binder.getDownloadTracker().setDownloadHeaders(headers);
+            callback.resolve(null);
         });
     }
 

@@ -140,7 +140,7 @@ declare function addDownloads(requests: DownloadRequest[]): Promise<void>;
 /**
  * Remove all downloads.
  */
-declare function removeDownloads(): Promise<void>;
+declare function clearDownloads(): Promise<void>;
 /**
  * Gets all downloads.
  */
@@ -153,6 +153,12 @@ declare function getDownloads(): Promise<Download[]>;
  * Gets all current downloads.
  */
 declare function getCurrentDownloads(): Promise<Download[]>;
+/**
+ * Set the request headers.
+ */
+declare function setDownloadHeaders(header: {
+    [key: string]: string;
+}): Promise<void>;
 /**
  * Gets an download by id.
  */
@@ -242,11 +248,12 @@ declare const _default: {
     getPlaybackPitch: typeof getPlaybackPitch;
     addDownloads: typeof addDownloads;
     removeDownload: typeof removeDownload;
-    removeDownloads: typeof removeDownloads;
+    clearDownloads: typeof clearDownloads;
     getDownloadsPaused: typeof getDownloadsPaused;
     getCurrentDownloads: typeof getCurrentDownloads;
     getDownloads: typeof getDownloads;
     getDownload: typeof getDownload;
+    setDownloadHeaders: typeof setDownloadHeaders;
     toggleDownloadsPaused: typeof toggleDownloadsPaused;
     resumeDownloads: typeof resumeDownloads;
     pauseDownloads: typeof pauseDownloads;

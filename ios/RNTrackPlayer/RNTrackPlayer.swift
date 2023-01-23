@@ -391,7 +391,7 @@ public class RNTrackPlayer: RCTEventEmitter {
         }
 
         try? player.moveItem(fromIndex: index.intValue, toIndex: newindex.intValue)
- 
+
         handleQueueChange()
         resolve(NSNull())
     }
@@ -504,7 +504,7 @@ public class RNTrackPlayer: RCTEventEmitter {
         player.seek(to: time)
         resolve(NSNull())
     }
-    
+
     @objc(shuffle:rejecter:)
     public func shuffle(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         print("Shuffling")
@@ -551,22 +551,22 @@ public class RNTrackPlayer: RCTEventEmitter {
         resolve(player.volume)
     }
 
-    
+
     @objc(setPlaybackParameters:resolver:rejecter:)
     public func setPlaybackParameters(params:  [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         player.rate = params["speed"] as! Float
         handlePlaybackParamterChange()
         resolve(NSNull())
     }
-    
+
     public func handlePlaybackParamterChange() {
         sendEvent(withName: "playback-parameters-changed", body: ["speed": player.rate, "pitch": 1.0])
     }
-  
+
     public func handleQueueChange() {
         sendEvent(withName: "queue-changed", body: nil)
     }
-  
+
     @objc(getPlaybackParameters:rejecter:)
     public func getPlaybackParameters(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         // TODO: getPlaybackParameters pitch
@@ -601,7 +601,7 @@ public class RNTrackPlayer: RCTEventEmitter {
         // TODO: getPlaybackPitch IOS
         resolve(1.0)
     }
- 
+
     @objc(getTrack:resolver:rejecter:)
     public func getTrack(index: NSNumber, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         if (index.intValue >= 0 && index.intValue < player.items.count) {
@@ -658,11 +658,15 @@ public class RNTrackPlayer: RCTEventEmitter {
     public func updateNowPlayingMetadata(metadata: [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         Metadata.update(for: player, with: metadata)
     }
-    
- 
+
     @objc(getDownloadsPaused:rejecter:)
     public func getDownloadsPaused(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         resolve(true)
+    }
+
+    @objc(setDownloadHeaders:resolver:rejecter:)
+    public func setDownloadHeaders(headers: [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        resolve(NSNull())
     }
 
     @objc(toggleDownloadsPaused:rejecter:)
@@ -681,8 +685,8 @@ public class RNTrackPlayer: RCTEventEmitter {
     }
 
 
-    @objc(removeDownloads:rejecter:)
-    public func removeDownloads(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    @objc(clearDownloads:rejecter:)
+    public func clearDownloads(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         resolve(NSNull())
     }
 
@@ -695,12 +699,12 @@ public class RNTrackPlayer: RCTEventEmitter {
     public func getDownloads(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         resolve([])
     }
-    
+
     @objc(addDownloads:resolver:rejecter:)
     public func addDownloads(downloadRequests: [[String: Any]], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         resolve(NSNull())
     }
-     
+
     @objc(removeDownload:resolver:rejecter:)
     public func removeDownload(downloadid: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         resolve(NSNull())

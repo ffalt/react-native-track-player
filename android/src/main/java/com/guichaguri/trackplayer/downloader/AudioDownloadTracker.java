@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AudioDownloadTracker implements DownloadManager.Listener {
 
@@ -51,6 +52,10 @@ public class AudioDownloadTracker implements DownloadManager.Listener {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public void setDownloadHeaders(Map<String, String> headers) {
+        DownloadUtils.setDownloadHeaders(headers);
     }
 
     public int countDownloads() {
@@ -110,7 +115,10 @@ public class AudioDownloadTracker implements DownloadManager.Listener {
     private void addRequest(String url, String id) {
         Download download = getDownload(id);
         if (download == null) {
-            DownloadRequest downloadRequest = DownloadHelper.forMediaItem(context, MediaItem.fromUri(Uri.parse(url))).getDownloadRequest(id, Util.getUtf8Bytes(id));
+            DownloadRequest downloadRequest =
+                    DownloadHelper
+                            .forMediaItem(context, MediaItem.fromUri(Uri.parse(url)))
+                            .getDownloadRequest(id, Util.getUtf8Bytes(id));
             downloadManager.addDownload(downloadRequest);
         }
     }
@@ -130,7 +138,7 @@ public class AudioDownloadTracker implements DownloadManager.Listener {
         downloadManager.removeDownload(id);
     }
 
-    public void removeDownloads() {
+    public void clearDownloads() {
         downloadManager.removeAllDownloads();
     }
 

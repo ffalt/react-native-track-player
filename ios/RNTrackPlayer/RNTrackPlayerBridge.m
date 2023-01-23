@@ -65,7 +65,7 @@ RCT_EXTERN_METHOD(getDownloads:(RCTPromiseResolveBlock)resolve
 RCT_EXTERN_METHOD(getDownloadsPaused:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject);
 
-RCT_EXTERN_METHOD(removeDownloads:(RCTPromiseResolveBlock)resolve
+RCT_EXTERN_METHOD(clearDownloads:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject);
 
 RCT_EXTERN_METHOD(toggleDownloadsPaused:(RCTPromiseResolveBlock)resolve
@@ -168,6 +168,10 @@ RCT_EXTERN_METHOD(getPosition:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject);
 
 RCT_EXTERN_METHOD(getState:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject);
+
+RCT_EXTERN_METHOD(setDownloadHeaders:(NSDictionary *)headers
+                  resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject);
 
 RCT_EXTERN_METHOD(updateMetadataForTrack:(nonnull NSNumber *)trackIndex

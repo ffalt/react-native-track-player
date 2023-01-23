@@ -13,7 +13,7 @@ import { Button } from './Button';
 const Header: React.FC = () => {
   return (
     <View style={demoStyles.buttonBar}>
-      <Button label="Remove All" onPress={() => TrackPlayer.removeDownloads().catch(console.error)} />
+      <Button label="Remove All" onPress={() => TrackPlayer.clearDownloads().catch(console.error)} />
     </View>
   );
 };

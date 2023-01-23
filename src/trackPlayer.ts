@@ -339,8 +339,8 @@ async function addDownloads(requests: DownloadRequest[]): Promise<void> {
 /**
  * Remove all downloads.
  */
-async function removeDownloads(): Promise<void> {
-  return TrackPlayer.removeDownloads();
+async function clearDownloads(): Promise<void> {
+  return TrackPlayer.clearDownloads();
 }
 
 /**
@@ -362,6 +362,13 @@ async function getDownloads(): Promise<Download[]> {
  */
 async function getCurrentDownloads(): Promise<Download[]> {
   return TrackPlayer.getCurrentDownloads();
+}
+
+/**
+ * Set the request headers.
+ */
+async function setDownloadHeaders(header: { [key: string]: string }): Promise<void> {
+  return TrackPlayer.setDownloadHeaders(header);
 }
 
 /**
@@ -499,11 +506,12 @@ export default {
   // MARK: - Downloads
   addDownloads,
   removeDownload,
-  removeDownloads,
+  clearDownloads,
   getDownloadsPaused,
   getCurrentDownloads,
   getDownloads,
   getDownload,
+  setDownloadHeaders,
   toggleDownloadsPaused,
   resumeDownloads,
   pauseDownloads
