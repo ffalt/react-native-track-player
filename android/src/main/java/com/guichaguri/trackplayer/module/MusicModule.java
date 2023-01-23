@@ -325,7 +325,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     public void getDownload(String id, final Promise callback) {
         waitForConnection(() -> {
             Download download = binder.getDownloadTracker().getDownload(id);
-            callback.resolve(DownloadUtils.getDownloadBundle(download));
+            callback.resolve(Arguments.fromBundle(DownloadUtils.getDownloadBundle(download)));
         });
     }
 
