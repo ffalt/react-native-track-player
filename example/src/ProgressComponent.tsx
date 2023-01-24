@@ -27,8 +27,8 @@ export function ProgressComponent(): JSX.Element {
       <Info label="Progress.position" value={`${progress.position}`} />
       <Info label="Progress.duration" value={`${progress.duration}`} />
       <Info label="Progress.buffered" value={`${progress.buffered}`} />
-      <Info label="Progress.percent" value={`${progressPC.progress}`} />
-      <Info label="Progress.percent.buffer" value={`${progressPC.bufferProgress}`} />
+      <Info label="Progress.percent" value={`${progressPC.progress.toFixed(4)}`} />
+      <Info label="Progress.percent.buffer" value={`${progressPC.bufferProgress.toFixed(4)}`} />
       <Info label="Progress.ms.position" value={`${progressMS.position}`} />
       <Info label="Progress.ms.duration" value={`${progressMS.duration}`} />
     </>

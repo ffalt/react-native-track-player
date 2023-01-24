@@ -26,6 +26,7 @@ import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
 
+import com.guichaguri.trackplayer.downloader.DownloadUtils;
 import com.guichaguri.trackplayer.service.MusicManager;
 import com.guichaguri.trackplayer.service.Utils;
 import com.guichaguri.trackplayer.service.models.Track;
@@ -77,7 +78,7 @@ public class ExoPlayback {
 
     public void initialize() {
         if (cacheMaxSize > 0) {
-            File cacheDir = new File(context.getCacheDir(), "TrackPlayer");
+            File cacheDir = new File(context.getCacheDir(), "TrackPlayerCache");
             DatabaseProvider db = new StandaloneDatabaseProvider(context);
             cache = new SimpleCache(cacheDir, new LeastRecentlyUsedCacheEvictor(cacheMaxSize), db);
         } else {
@@ -90,12 +91,21 @@ public class ExoPlayback {
     }
 
     public DataSource.Factory enableCaching(DataSource.Factory ds) {
+        return getDownloadCache(getPlaybackCache(ds));
+    }
+
+    public DataSource.Factory getDownloadCache(DataSource.Factory ds) {
+        return new CacheDataSource.Factory()
+                .setCache(DownloadUtils.getDownloadCache(this.context))
+                .setUpstreamDataSourceFactory(ds)
+                .setCacheWriteDataSinkFactory(null); // Disable writing.
+    }
+    public DataSource.Factory getPlaybackCache(DataSource.Factory ds) {
         if (cache == null || cacheMaxSize <= 0) return ds;
         return new CacheDataSource.Factory()
                 .setCache(cache)
                 .setUpstreamDataSourceFactory(ds)
                 .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
-//        CacheDataSourceFactory(cache, ds, CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
     }
 
     private void prepare() {
@@ -470,6 +480,9 @@ public class ExoPlayback {
     }
 
     private void updateScrobble() {
+        if (!scrobble) {
+            return;
+        }
         // Remove scheduled updates.
         handler.removeCallbacks(updateScrobbleAction);
         int state = getState();
@@ -501,11 +514,9 @@ public class ExoPlayback {
 
     private void updateTrackPlayerState() {
         int state = getState();
-        Log.d(Utils.LOG, "onPlayerStateChanged: " + state);
-        if (scrobble) {
-            updateScrobble();
-        }
+        updateScrobble();
         if (state != previousState) {
+            Log.d(Utils.LOG, "onPlayerStateChanged: " + state);
             manager.onStateChange(state);
             if (Utils.isPlaying(state) && !Utils.isPlaying(previousState)) {
                 manager.onPlay();
