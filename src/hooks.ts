@@ -529,7 +529,7 @@ export const useTrackPlayerPlaybackPitch = (): number => {
 export const useTrackPlayerHasNext = (): boolean => {
   const [has, setHas] = useState<boolean>(false);
 
-  useTrackPlayerEvents([Event.PlaybackTrackChanged, Event.ShuffleModeChanged], async () => {
+  useTrackPlayerEvents([Event.PlaybackTrackChanged, Event.ShuffleModeChanged, Event.QueueChanged], async () => {
     setHas(await TrackPlayer.hasNext());
   });
 
@@ -551,7 +551,7 @@ export const useTrackPlayerHasNext = (): boolean => {
 export const useTrackPlayerHasPrevious = (): boolean => {
   const [has, setHas] = useState<boolean>(false);
 
-  useTrackPlayerEvents([Event.PlaybackTrackChanged, Event.ShuffleModeChanged], async () => {
+  useTrackPlayerEvents([Event.PlaybackTrackChanged, Event.ShuffleModeChanged, Event.QueueChanged], async () => {
     setHas(await TrackPlayer.hasPrevious());
   });
 
@@ -580,7 +580,7 @@ export const useTrackPlayerHasSiblings = (): { hasNext: boolean, hasPrevious: bo
     };
   };
 
-  useTrackPlayerEvents([Event.PlaybackTrackChanged, Event.ShuffleModeChanged], async () => {
+  useTrackPlayerEvents([Event.PlaybackTrackChanged, Event.ShuffleModeChanged, Event.QueueChanged], async () => {
     setSiblings(await update());
   });
 
