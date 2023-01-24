@@ -525,3 +525,76 @@ export const useTrackPlayerPlaybackPitch = (): number => {
 
   return pitch;
 };
+
+export const useTrackPlayerHasNext = (): boolean => {
+  const [has, setHas] = useState<boolean>(false);
+
+  useTrackPlayerEvents([Event.PlaybackTrackChanged, Event.ShuffleModeChanged], async () => {
+    setHas(await TrackPlayer.hasNext());
+  });
+
+  useEffect(() => {
+    let isSubscribed = true;
+    TrackPlayer.hasNext().then((value) => {
+      if (isSubscribed) {
+        setHas(value);
+      }
+    });
+    return (): void => {
+      isSubscribed = false;
+    };
+  }, []);
+
+  return has;
+};
+
+export const useTrackPlayerHasPrevious = (): boolean => {
+  const [has, setHas] = useState<boolean>(false);
+
+  useTrackPlayerEvents([Event.PlaybackTrackChanged, Event.ShuffleModeChanged], async () => {
+    setHas(await TrackPlayer.hasPrevious());
+  });
+
+  useEffect(() => {
+    let isSubscribed = true;
+    TrackPlayer.hasPrevious().then((value) => {
+      if (isSubscribed) {
+        setHas(value);
+      }
+    });
+    return (): void => {
+      isSubscribed = false;
+    };
+  }, []);
+
+  return has;
+};
+
+export const useTrackPlayerHasSiblings = (): { hasNext: boolean, hasPrevious: boolean } => {
+  const [siblings, setSiblings] = useState<{ hasNext: boolean, hasPrevious: boolean }>({ hasNext: false, hasPrevious: false });
+
+  const update = async () => {
+    return {
+      hasNext: await TrackPlayer.hasNext(),
+      hasPrevious: await TrackPlayer.hasPrevious()
+    };
+  };
+
+  useTrackPlayerEvents([Event.PlaybackTrackChanged, Event.ShuffleModeChanged], async () => {
+    setSiblings(await update());
+  });
+
+  useEffect(() => {
+    let isSubscribed = true;
+    update().then((value) => {
+      if (isSubscribed) {
+        setSiblings(value);
+      }
+    });
+    return (): void => {
+      isSubscribed = false;
+    };
+  }, []);
+
+  return siblings;
+};

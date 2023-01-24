@@ -45,7 +45,6 @@ public class ExoPlayback {
     protected final Context context;
     protected final MusicManager manager;
     protected final ExoPlayer player;
-
     protected List<Track> queue = Collections.synchronizedList(new ArrayList<Track>());
 
     // https://github.com/google/ExoPlayer/issues/2728
@@ -100,6 +99,7 @@ public class ExoPlayback {
                 .setUpstreamDataSourceFactory(ds)
                 .setCacheWriteDataSinkFactory(null); // Disable writing.
     }
+
     public DataSource.Factory getPlaybackCache(DataSource.Factory ds) {
         if (cache == null || cacheMaxSize <= 0) return ds;
         return new CacheDataSource.Factory()
@@ -286,6 +286,14 @@ public class ExoPlayback {
 
     public void setScrobble(boolean scrobble) {
         this.scrobble = scrobble;
+    }
+
+    public boolean hasNext() {
+        return player.hasNextMediaItem();
+    }
+
+    public boolean hasPrevious() {
+        return player.hasPreviousMediaItem();
     }
 
     public void updateTrack(int index, Track track) {

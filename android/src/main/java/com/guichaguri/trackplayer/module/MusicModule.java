@@ -248,6 +248,20 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
+    public void hasNext(final Promise callback) {
+        waitForConnection(() -> {
+            callback.resolve(binder.getPlayback().hasNext());
+        });
+    }
+
+    @ReactMethod
+    public void hasPrevious(final Promise callback) {
+        waitForConnection(() -> {
+            callback.resolve(binder.getPlayback().hasPrevious());
+        });
+    }
+
+    @ReactMethod
     public void addDownloads(ReadableArray downloads, final Promise callback) {
         final ArrayList bundleList = Arguments.toList(downloads);
         waitForConnection(() -> {

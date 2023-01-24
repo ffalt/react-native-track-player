@@ -203,6 +203,14 @@ declare function getPlaybackPitch(): Promise<number>;
  * Sets Playback Pitch.
  */
 declare function setPlaybackPitch(pitch: number): Promise<void>;
+/**
+ * Gets the next item (with respecting shuffle mode)
+ */
+declare function hasNext(): Promise<boolean>;
+/**
+ * Gets the previous item (with respecting shuffle mode)
+ */
+declare function hasPrevious(): Promise<boolean>;
 declare const _default: {
     setupPlayer: typeof setupPlayer;
     destroy: typeof destroy;
@@ -233,6 +241,8 @@ declare const _default: {
     setPlaybackParameters: typeof setPlaybackParameters;
     setPlaybackSpeed: typeof setPlaybackSpeed;
     setPlaybackPitch: typeof setPlaybackPitch;
+    hasPrevious: typeof hasPrevious;
+    hasNext: typeof hasNext;
     getVolume: typeof getVolume;
     getTrack: typeof getTrack;
     getQueue: typeof getQueue;

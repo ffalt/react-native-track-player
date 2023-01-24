@@ -448,6 +448,20 @@ async function setPlaybackPitch(pitch: number): Promise<void> {
   return TrackPlayer.setPlaybackPitch(pitch);
 }
 
+/**
+ * Gets the next item (with respecting shuffle mode)
+ */
+async function hasNext(): Promise<boolean> {
+  return TrackPlayer.hasNext();
+}
+
+/**
+ * Gets the previous item (with respecting shuffle mode)
+ */
+async function hasPrevious(): Promise<boolean> {
+  return TrackPlayer.hasPrevious();
+}
+
 export default {
   // MARK: - General API
   setupPlayer,
@@ -489,6 +503,8 @@ export default {
   setPlaybackPitch,
 
   // MARK: - Getters
+  hasPrevious,
+  hasNext,
   getVolume,
   getTrack,
   getQueue,

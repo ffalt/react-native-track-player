@@ -44,4 +44,10 @@ export declare const useTrackPlayerRepeatMode: () => RepeatMode;
 export declare const useTrackPlayerPlaybackParameters: () => PlaybackParameters;
 export declare const useTrackPlayerPlaybackSpeed: () => number;
 export declare const useTrackPlayerPlaybackPitch: () => number;
+export declare const useTrackPlayerHasNext: () => boolean;
+export declare const useTrackPlayerHasPrevious: () => boolean;
+export declare const useTrackPlayerHasSiblings: () => {
+    hasNext: boolean;
+    hasPrevious: boolean;
+};
 export {};

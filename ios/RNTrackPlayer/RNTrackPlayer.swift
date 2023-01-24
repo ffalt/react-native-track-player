@@ -715,6 +715,17 @@ public class RNTrackPlayer: RCTEventEmitter {
         resolve(NSNull())
     }
 
+    @objc(hasNext:rejecter:)
+    public func hasNext(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        // TODO: hasNext on ios
+        resolve(false)
+    }
+
+    @objc(hasPrevious:rejecter:)
+    public func hasPrevious(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        // TODO: hasPrevious on ios
+        resolve(false)
+    }
 
     // MARK: - QueuedAudioPlayer Event Handlers
 
