@@ -160,6 +160,98 @@ export declare enum Event {
     RemoteDislike = "remote-dislike",
     RemoteBookmark = "remote-bookmark"
 }
+export interface EventMap {
+    [Event.PlaybackState]: {
+        state: State;
+    };
+    [Event.PlaybackError]: {
+        code?: string;
+        message: string;
+    };
+    [Event.PlaybackQueueEnded]: {
+        track?: number | null;
+        position: number;
+    };
+    [Event.PlaybackTrackChanged]: {
+        track?: number | null;
+        nextTrack?: number | null;
+        position: number;
+    };
+    [Event.PlaybackParametersChanged]: PlaybackParameters;
+    [Event.QueueChanged]: void;
+    [Event.DownloadsChanged]: void;
+    [Event.DownloadsPausedChanged]: {
+        paused: boolean;
+    };
+    [Event.DownloadChanged]: {
+        id: string;
+        state: DownloadState;
+    };
+    [Event.DownloadProgressChanged]: {
+        id: string;
+        contentLength: number;
+        bytesDownloaded: number;
+        percentDownloaded: number;
+    };
+    [Event.ShuffleModeChanged]: {
+        enabled: boolean;
+    };
+    [Event.RepeatModeChanged]: {
+        mode: RepeatMode;
+    };
+    [Event.Scrobble]: {
+        trackIndex: number;
+    };
+    [Event.PlaybackMetadataReceived]: {
+        source: string;
+        url: string;
+        date: string;
+        title: string;
+        artist: string;
+        album: string;
+        genre: string;
+    };
+    [Event.RemotePlay]: void;
+    [Event.RemotePlayId]: {
+        id: string;
+    };
+    [Event.RemotePlaySearch]: {
+        query: string;
+        focus?: string;
+        title?: string;
+        artist?: string;
+        album?: string;
+        genre?: string;
+        playlist?: string;
+    };
+    [Event.RemotePause]: void;
+    [Event.RemoteStop]: void;
+    [Event.RemoteSkip]: {
+        index: number;
+    };
+    [Event.RemoteNext]: void;
+    [Event.RemotePrevious]: void;
+    [Event.RemoteJumpForward]: {
+        interval: number;
+    };
+    [Event.RemoteJumpBackward]: {
+        interval: number;
+    };
+    [Event.RemoteSeek]: {
+        position: number;
+    };
+    [Event.RemoteSetRating]: {
+        rating: boolean | number;
+        type: number;
+    };
+    [Event.RemoteDuck]: {
+        permanent?: boolean;
+        paused: boolean;
+    };
+    [Event.RemoteLike]: void;
+    [Event.RemoteDislike]: void;
+    [Event.RemoteBookmark]: void;
+}
 export declare enum TrackType {
     Default = "default",
     Dash = "dash",

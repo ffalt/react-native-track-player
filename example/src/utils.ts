@@ -46,15 +46,15 @@ export const demoStyles = StyleSheet.create({
     padding: 4,
   },
   infoLabel: { fontSize: 10, fontWeight: '800' },
-  tabBarIconStyle: { display: "none", height: 0 },
-  tabBarLabelStyle:  {
+  tabBarIconStyle: { display: 'none', height: 0 },
+  tabBarLabelStyle: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
     right: 0,
-    textAlignVertical: 'center'
-  }
+    textAlignVertical: 'center',
+  },
 });
 
 export function downloadStateToString(mode: DownloadState): string {

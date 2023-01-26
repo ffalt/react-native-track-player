@@ -4,12 +4,11 @@ import * as resolveAssetSource from "react-native/Libraries/Image/resolveAssetSo
 import {
   MetadataOptions,
   PlayerOptions,
-  Event,
   Track,
   State,
   TrackMetadataBase,
   NowPlayingMetadata,
-  RepeatMode, DownloadRequest, Download, PlaybackParameters
+  RepeatMode, DownloadRequest, Download, PlaybackParameters, EventMap
 } from "./interfaces";
 
 const { TrackPlayerModule: TrackPlayer } = NativeModules;
@@ -53,8 +52,7 @@ function registerPlaybackService(factory: () => ServiceHandler) {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function addEventListener(event: Event, listener: (data: any) => void) {
+function addEventListener<E extends keyof EventMap>(event: E, listener: (data: EventMap[E]) => void) {
   return emitter.addListener(event, listener);
 }
 
@@ -463,72 +461,59 @@ async function hasPrevious(): Promise<boolean> {
 }
 
 export default {
-  // MARK: - General API
-  setupPlayer,
-  destroy,
-  registerPlaybackService,
-  addEventListener,
-  isServiceRunning,
-
-  // MARK: - Queue API
   add,
-  remove,
-  removeUpcomingTracks,
-  move,
+  addDownloads,
+  addEventListener,
   clear,
+  clearDownloads,
+  clearNowPlayingMetadata,
+  destroy,
+  getBufferedPosition,
+  getCurrentDownloads,
+  getCurrentTrack,
+  getDownload,
+  getDownloads,
+  getDownloadsPaused,
+  getDuration,
+  getPlaybackParameters,
+  getPlaybackPitch,
+  getPlaybackSpeed,
+  getPosition,
+  getQueue,
+  getRepeatMode,
+  getShuffleModeEnabled,
+  getState,
+  getTrack,
+  getVolume,
+  hasNext,
+  hasPrevious,
+  isServiceRunning,
+  move,
+  pause,
+  pauseDownloads,
+  play,
+  registerPlaybackService,
+  remove,
+  removeDownload,
+  removeUpcomingTracks,
+  reset,
+  resumeDownloads,
+  seekTo,
+  setDownloadHeaders,
+  setPlaybackParameters,
+  setPlaybackPitch,
+  setPlaybackSpeed,
+  setRepeatMode,
+  setShuffleModeEnabled,
+  setVolume,
+  setupPlayer,
   shuffle,
   skip,
   skipToNext,
   skipToPrevious,
-  setShuffleModeEnabled,
-
-  // MARK: - Control Center / Notifications API
-  updateOptions,
-  updateMetadataForTrack,
-  clearNowPlayingMetadata,
-  updateNowPlayingMetadata,
-
-  // MARK: - Player API
-  reset,
-  play,
-  pause,
   stop,
-  seekTo,
-
-  // MARK: - Setters
-  setVolume,
-  setRepeatMode,
-  setPlaybackParameters,
-  setPlaybackSpeed,
-  setPlaybackPitch,
-
-  // MARK: - Getters
-  hasPrevious,
-  hasNext,
-  getVolume,
-  getTrack,
-  getQueue,
-  getCurrentTrack,
-  getDuration,
-  getBufferedPosition,
-  getPosition,
-  getState,
-  getShuffleModeEnabled,
-  getRepeatMode,
-  getPlaybackParameters,
-  getPlaybackSpeed,
-  getPlaybackPitch,
-
-  // MARK: - Downloads
-  addDownloads,
-  removeDownload,
-  clearDownloads,
-  getDownloadsPaused,
-  getCurrentDownloads,
-  getDownloads,
-  getDownload,
-  setDownloadHeaders,
   toggleDownloadsPaused,
-  resumeDownloads,
-  pauseDownloads
+  updateMetadataForTrack,
+  updateNowPlayingMetadata,
+  updateOptions
 };

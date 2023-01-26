@@ -151,7 +151,7 @@ public class Utils {
     public static void setRating(Bundle data, String key, RatingCompat rating) {
         if (!rating.isRated()) return;
         int ratingType = rating.getRatingStyle();
-
+        data.putInt("type", ratingType);
         if (ratingType == RatingCompat.RATING_HEART) {
             data.putBoolean(key, rating.hasHeart());
         } else if (ratingType == RatingCompat.RATING_THUMB_UP_DOWN) {

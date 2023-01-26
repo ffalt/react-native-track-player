@@ -800,7 +800,7 @@ public class RNTrackPlayer: RCTEventEmitter {
     }
 
     func handleAudioPlayerFailed(error: Error?) {
-        sendEvent(withName: "playback-error", body: ["error": error?.localizedDescription])
+        sendEvent(withName: "playback-error", body: ["message": error?.localizedDescription])
     }
 
     func handleAudioPlayerPlaybackEnded(reason: PlaybackEndedReason) {
