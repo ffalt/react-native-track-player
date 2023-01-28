@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EmitterSubscription } from "react-native";
 import { Download, DownloadState, DownloadRequest, Event } from "./interfaces";
 import TrackPlayer from "./trackPlayer";
-
 
 export class TrackPlayerDownloadManager {
   private downloadChangeSubscriptions = new Map<string, Array<(download: Download) => void>>();
@@ -22,12 +21,12 @@ export class TrackPlayerDownloadManager {
 
   connect(): void {
     this.subscriptions.push(
-      TrackPlayer.addEventListener(Event.DownloadChanged, ({id, state}) => {
+      TrackPlayer.addEventListener(Event.DownloadChanged, ({ id, state }) => {
         this.updateDownload(id, state).catch(console.error);
       })
     );
     this.subscriptions.push(
-      TrackPlayer.addEventListener(Event.DownloadProgressChanged, ({id, contentLength, bytesDownloaded, percentDownloaded}) => {
+      TrackPlayer.addEventListener(Event.DownloadProgressChanged, ({ id, contentLength, bytesDownloaded, percentDownloaded }) => {
         this.updateDownloadProgress(id, contentLength, bytesDownloaded, percentDownloaded).catch(console.error);
       })
     );
@@ -147,25 +146,24 @@ export function useTrackPlayerCurrentDownloadsCached(cache: TrackPlayerDownloadM
     };
   }, []);
 
-  const refresh = useCallback((downloads?: Array<Download>): void => {
-    if (isUnmountedRef.current) {
-      return;
-    }
-    const ds = downloads ?
-      downloads.filter(d => d.state !== DownloadState.Completed)
-      : cache.getCurrentDownloads();
-    setData(ds);
-  }, [cache]);
-
   useEffect(() => {
+
+    const refresh = (downloads?: Array<Download>): void => {
+      const ds = downloads ?
+        downloads.filter(d => d.state !== DownloadState.Completed)
+        : cache.getCurrentDownloads();
+      if (isUnmountedRef.current) {
+        return;
+      }
+      setData(ds);
+    };
+
     cache.subscribeDownloadsChanges(refresh);
+    refresh();
     return (): void => {
       cache.unsubscribeDownloadsChanges(refresh);
     };
-  }, [cache, refresh]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => refresh(), []);
+  }, [cache]);
 
   return data;
 }
@@ -181,23 +179,23 @@ export function useTrackPlayerDownloadCached(id: string, cache: TrackPlayerDownl
     };
   }, []);
 
-  const refresh = useCallback((download?: Download): void => {
-    const d = download ? download : cache.getDownload(id);
-    if (isUnmountedRef.current) {
-      return;
-    }
-    setData(d);
-  }, [id, cache]);
 
   useEffect(() => {
+    const refresh = (download?: Download): void => {
+      const d = download ? download : cache.getDownload(id);
+      if (isUnmountedRef.current) {
+        return;
+      }
+      setData(d);
+    };
+
     cache.subscribeDownloadChange(id, refresh);
+    refresh();
+
     return (): void => {
       cache.unsubscribeDownloadChange(id, refresh);
     };
-  }, [id, cache, refresh]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => refresh(), []);
+  }, [id, cache]);
 
   return data;
 }
