@@ -1,4 +1,4 @@
-import { MetadataOptions, PlayerOptions, Track, State, TrackMetadataBase, NowPlayingMetadata, RepeatMode, DownloadRequest, Download, PlaybackParameters, EventMap } from "./interfaces";
+import { MetadataOptions, PlayerOptions, Track, State, TrackMetadataBase, NowPlayingMetadata, RepeatMode, DownloadRequest, Download, PlaybackParameters, EventMap } from './interfaces';
 /**
  * Initializes the player with the specified options.
  */

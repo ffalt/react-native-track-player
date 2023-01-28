@@ -48,24 +48,24 @@ export declare function useTrackPlayerDownloads(): Array<Download> | undefined;
 export declare function useTrackPlayerDownloadsPaused(): boolean;
 export declare function useTrackPlayerCurrentDownloads(): Array<Download> | undefined;
 export declare function useTrackPlayerDownload(id: string): Download | undefined;
-export declare const useTrackPlayerPlaybackStateIs: (...states: Array<State>) => boolean;
-export declare const useTrackPlayerPlaybackStateIsPlaying: () => boolean;
-export declare const useTrackPlayerProgressPercent: (interval?: number) => {
+export declare function useTrackPlayerPlaybackStateIs(...states: Array<State>): boolean;
+export declare function useTrackPlayerPlaybackStateIsPlaying(): boolean;
+export declare function useTrackPlayerProgressPercent(interval?: number): {
     progress: number;
     bufferProgress: number;
 };
-export declare const useTrackPlayerProgressMS: (interval?: number) => {
+export declare function useTrackPlayerProgressMS(interval?: number): {
     duration: number;
     position: number;
 };
 export declare function useTrackPlayerShuffleModeEnabled(): boolean;
 export declare function useTrackPlayerRepeatMode(): RepeatMode;
 export declare function useTrackPlayerPlaybackParameters(): PlaybackParameters;
-export declare const useTrackPlayerPlaybackSpeed: () => number;
-export declare const useTrackPlayerPlaybackPitch: () => number;
-export declare const useTrackPlayerHasNext: () => boolean;
-export declare const useTrackPlayerHasPrevious: () => boolean;
-export declare const useTrackPlayerHasSiblings: () => {
+export declare function useTrackPlayerPlaybackSpeed(): number;
+export declare function useTrackPlayerPlaybackPitch(): number;
+export declare function useTrackPlayerHasNext(): boolean;
+export declare function useTrackPlayerHasPrevious(): boolean;
+export declare function useTrackPlayerHasSiblings(): {
     hasNext: boolean;
     hasPrevious: boolean;
 };

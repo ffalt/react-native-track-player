@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import TrackPlayer from "./trackPlayer";
 import { Download, Event, EventMap, PlaybackParameters, RepeatMode, State, Track } from "./interfaces";
@@ -29,8 +29,11 @@ export function useTrackPlayerEvent<E extends keyof EventMap>(event: E, handler:
   }, [handler]);
 
   useEffect(() => {
-    const sub = TrackPlayer.addEventListener(event, (payload) => savedHandler.current!({ ...payload, type: event }));
-
+    const sub = TrackPlayer.addEventListener(event, (payload) => {
+      if (savedHandler?.current) {
+        savedHandler.current({ ...payload, type: event });
+      }
+    });
     return () => sub.remove();
   }, [event]);
 }
@@ -40,7 +43,9 @@ export function useTrackPlayerEvent<E extends keyof EventMap>(event: E, handler:
  * @param events - TrackPlayer events to subscribe to
  * @param handler - callback invoked when the event fires
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useTrackPlayerEvents(events: Event[], handler: Handler<any>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const savedHandler = useRef<Handler<any>>();
 
   useEffect(() => {
@@ -48,10 +53,13 @@ export function useTrackPlayerEvents(events: Event[], handler: Handler<any>) {
   }, [handler]);
 
   useEffect(() => {
-    const subs = events.map((event) =>
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      TrackPlayer.addEventListener(event, (payload) => savedHandler.current!({ ...payload, type: event }))
-    );
+    const subs = events.map((event) => {
+      return TrackPlayer.addEventListener(event, (payload) => {
+        if (savedHandler?.current) {
+          savedHandler.current({ ...payload, type: event });
+        }
+      });
+    });
 
     return () => subs.forEach((sub) => sub.remove());
   }, [events]);
@@ -78,22 +86,30 @@ export function useTrackPlayerDataEvent<T, E extends keyof EventMap>(event: E, h
     };
   }, []);
 
-  const refresh = (payload?: EventMap[E]) => {
+  const refresh = useCallback((payload?: EventMap[E]) => {
     if (filter) {
-      if (!filter(payload)) return;
+      if (!filter(payload)) {
+        return;
+      }
     }
     handler(payload as EventMap[E])
       .then(value => {
-        if (isUnmountedRef.current) return;
+        if (isUnmountedRef.current) {
+          return;
+        }
         if (compareFunc) {
-          if (compareFunc(data, value)) return;
+          if (compareFunc(data, value)) {
+            return;
+          }
         } else {
-          if (data === value) return;
+          if (data === value) {
+            return;
+          }
         }
         setData(value);
       })
       .catch(console.error);
-  };
+  }, [compareFunc, data, filter, handler]);
 
   useEffect(() => refresh(), []);
   useTrackPlayerEvent<E>(event, refresh);
@@ -119,19 +135,25 @@ export function useTrackPlayerDataEvents<T, S = void>(events: Array<Event>, hand
     };
   }, []);
 
-  const refresh = (payload?: Payload) => {
+  const refresh = useCallback((payload?: Payload) => {
     handler(payload as S)
       .then(value => {
-        if (isUnmountedRef.current) return;
+        if (isUnmountedRef.current) {
+          return;
+        }
         if (compareFunc) {
-          if (compareFunc(data, value)) return;
+          if (compareFunc(data, value)) {
+            return;
+          }
         } else {
-          if (data === value) return;
+          if (data === value) {
+            return;
+          }
         }
         setData(value);
       })
       .catch(console.error);
-  };
+  }, [compareFunc, data, handler]);
 
   useEffect(() => refresh(), []);
   useTrackPlayerEvents(events, refresh);
@@ -158,7 +180,7 @@ export interface ProgressState {
  * Poll for track progress for the given interval (in milliseconds)
  * @param updateInterval - ms interval
  */
-export function useTrackPlayerProgress(updateInterval?: number) {
+export function useTrackPlayerProgress(updateInterval?: number): ProgressState {
   const [state, setState] = useState<ProgressState>({ position: 0, duration: 0, buffered: 0 });
   const playerState = useTrackPlayerPlaybackState();
   const stateRef = useRef(state);
@@ -179,15 +201,18 @@ export function useTrackPlayerProgress(updateInterval?: number) {
     ]);
 
     // If the component has been unmounted, exit
-    if (isUnmountedRef.current) return;
+    if (isUnmountedRef.current) {
+      return;
+    }
 
     // If there is no change in properties, exit
     if (
       position === stateRef.current.position &&
       duration === stateRef.current.duration &&
       buffered === stateRef.current.buffered
-    )
+    ) {
       return;
+    }
 
     const newState = { position, duration, buffered };
     stateRef.current = newState;
@@ -195,7 +220,9 @@ export function useTrackPlayerProgress(updateInterval?: number) {
   };
 
   useEffect(() => {
-    if (isUnmountedRef.current) return;
+    if (isUnmountedRef.current) {
+      return;
+    }
 
     if ([State.None, State.Stopped].includes(playerState)) {
       setState({ position: 0, duration: 0, buffered: 0 });
@@ -216,7 +243,7 @@ export function useTrackPlayerProgress(updateInterval?: number) {
 export function useTrackPlayerCurrentTrackNr(): number | undefined {
   return useTrackPlayerDataEvent<number | undefined, Event.PlaybackTrackChanged>(
     Event.PlaybackTrackChanged,
-    async (payload) => payload ? noNull(payload?.nextTrack) : TrackPlayer.getCurrentTrack(),
+    async (payload) => noNull(payload ? payload?.nextTrack : await TrackPlayer.getCurrentTrack()),
     undefined,
     () => false // always update, even if trackNr did not change (the track itself may have changed)
   );
@@ -234,20 +261,26 @@ export function useTrackPlayerCurrentTrack(): Track | undefined {
     };
   }, []);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     if (trackNr === undefined) {
-      if (isUnmountedRef.current) return;
+      if (isUnmountedRef.current) {
+        return;
+      }
       setTrack(undefined);
       return;
     }
-    if (isUnmountedRef.current) return;
+    if (isUnmountedRef.current) {
+      return;
+    }
     TrackPlayer.getTrack(trackNr)
       .then(value => {
-        if (isUnmountedRef.current) return;
+        if (isUnmountedRef.current) {
+          return;
+        }
         setTrack(noNull(value));
       })
       .catch(console.error);
-  };
+  }, [trackNr]);
 
   useEffect(() => {
     refresh();
@@ -274,7 +307,9 @@ export function useTrackPlayerQueue(): Array<Track> | undefined {
   const refresh = () => {
     TrackPlayer.getQueue()
       .then(value => {
-        if (isUnmountedRef.current) return;
+        if (isUnmountedRef.current) {
+          return;
+        }
         setQueueState(value);
       })
       .catch(console.error);
@@ -320,17 +355,17 @@ export function useTrackPlayerDownload(id: string): Download | undefined {
   );
 }
 
-export const useTrackPlayerPlaybackStateIs = (...states: Array<State>): boolean => {
+export function useTrackPlayerPlaybackStateIs(...states: Array<State>): boolean {
   const state = useTrackPlayerPlaybackState();
   return states.includes(state);
-};
+}
 
-export const useTrackPlayerPlaybackStateIsPlaying = (): boolean => {
+export function useTrackPlayerPlaybackStateIsPlaying(): boolean {
   const state = useTrackPlayerPlaybackState();
   return state === State.Playing;
-};
+}
 
-export const useTrackPlayerProgressPercent = (interval = 1000): { progress: number; bufferProgress: number } => {
+export function useTrackPlayerProgressPercent(interval = 1000): { progress: number; bufferProgress: number } {
   const [percent, setPercent] = useState<{ progress: number; bufferProgress: number }>({
     progress: 0,
     bufferProgress: 0
@@ -346,7 +381,9 @@ export const useTrackPlayerProgressPercent = (interval = 1000): { progress: numb
   }, []);
 
   useEffect(() => {
-    if (isUnmountedRef.current) return;
+    if (isUnmountedRef.current) {
+      return;
+    }
     const { position, buffered, duration } = progress;
     setPercent({
       progress: duration ? position / duration : 0,
@@ -355,9 +392,9 @@ export const useTrackPlayerProgressPercent = (interval = 1000): { progress: numb
   }, [progress]);
 
   return percent;
-};
+}
 
-export const useTrackPlayerProgressMS = (interval = 1000): { duration: number; position: number } => {
+export function useTrackPlayerProgressMS(interval = 1000): { duration: number; position: number } {
   const [ms, setMs] = useState<{ duration: number; position: number }>({
     duration: 0,
     position: 0
@@ -373,7 +410,9 @@ export const useTrackPlayerProgressMS = (interval = 1000): { duration: number; p
   }, []);
 
   useEffect(() => {
-    if (isUnmountedRef.current) return;
+    if (isUnmountedRef.current) {
+      return;
+    }
     const { duration, position } = progress;
     setMs({
       duration: duration * 1000,
@@ -382,7 +421,7 @@ export const useTrackPlayerProgressMS = (interval = 1000): { duration: number; p
   }, [progress]);
 
   return ms;
-};
+}
 
 export function useTrackPlayerShuffleModeEnabled(): boolean {
   return useTrackPlayerDataEvent<boolean, Event.ShuffleModeChanged>(
@@ -408,33 +447,33 @@ export function useTrackPlayerPlaybackParameters(): PlaybackParameters {
   );
 }
 
-export const useTrackPlayerPlaybackSpeed = (): number => {
+export function useTrackPlayerPlaybackSpeed(): number {
   const params = useTrackPlayerPlaybackParameters();
   return params.speed;
-};
+}
 
-export const useTrackPlayerPlaybackPitch = (): number => {
+export function useTrackPlayerPlaybackPitch(): number {
   const params = useTrackPlayerPlaybackParameters();
   return params.pitch;
-};
+}
 
-export const useTrackPlayerHasNext = (): boolean => {
+export function useTrackPlayerHasNext(): boolean {
   return useTrackPlayerDataEvents<boolean>(
     [Event.PlaybackTrackChanged, Event.ShuffleModeChanged, Event.QueueChanged],
     async () => TrackPlayer.hasNext(),
     false
   );
-};
+}
 
-export const useTrackPlayerHasPrevious = (): boolean => {
+export function useTrackPlayerHasPrevious(): boolean {
   return useTrackPlayerDataEvents<boolean>(
     [Event.PlaybackTrackChanged, Event.ShuffleModeChanged, Event.QueueChanged],
     async () => TrackPlayer.hasPrevious(),
     false
   );
-};
+}
 
-export const useTrackPlayerHasSiblings = (): { hasNext: boolean, hasPrevious: boolean } => {
+export function useTrackPlayerHasSiblings(): { hasNext: boolean, hasPrevious: boolean } {
   return useTrackPlayerDataEvents<{ hasNext: boolean, hasPrevious: boolean }>(
     [Event.PlaybackTrackChanged, Event.ShuffleModeChanged, Event.QueueChanged],
     async () => {
@@ -448,4 +487,4 @@ export const useTrackPlayerHasSiblings = (): { hasNext: boolean, hasPrevious: bo
       return prev.hasNext === next.hasNext && prev.hasPrevious === next.hasPrevious;
     }
   );
-};
+}

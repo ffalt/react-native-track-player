@@ -1,4 +1,5 @@
 import TrackPlayer from './trackPlayer';
-export * from './hooks';
 export * from './interfaces';
+export * from './hooks';
+export * from './download';
 export default TrackPlayer;

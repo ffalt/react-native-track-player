@@ -7,7 +7,6 @@
   "scripts": {
     "build": "rimraf lib && tsc",
     "lint": "eslint \"src/**/*.ts\"",
-    "format": "prettier --write \"src/**/*.ts\"",
     "prepare": "yarn build"
   },
   "files": [
@@ -47,13 +46,6 @@
     "hooks"
   ],
   "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/react-native-kit/react-native-track-player.git"
-  },
-  "bugs": {
-    "url": "https://github.com/react-native-kit/react-native-track-player/issues"
-  },
   "peerDependencies": {
     "react": ">=18.2.0",
     "react-native": ">=0.71.0"
@@ -62,10 +54,8 @@
     "@types/react-native": "^0.71.0",
     "@typescript-eslint/parser": "^5.48.2",
     "eslint": "^8.32.0",
-    "eslint-config-prettier": "^8.6.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "prettier": "^2.8.3",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@react-native-community/eslint-config": "^3.2.0",
     "rimraf": "^4.1.1",
     "typescript": "^4.9.4"
   }

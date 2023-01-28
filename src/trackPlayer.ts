@@ -1,6 +1,7 @@
-import { Platform, AppRegistry, DeviceEventEmitter, NativeEventEmitter, NativeModules } from "react-native";
+import { Platform, AppRegistry, DeviceEventEmitter, NativeEventEmitter, NativeModules } from 'react-native';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import * as resolveAssetSource from "react-native/Libraries/Image/resolveAssetSource";
+import * as resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import {
   MetadataOptions,
   PlayerOptions,
@@ -9,15 +10,15 @@ import {
   TrackMetadataBase,
   NowPlayingMetadata,
   RepeatMode, DownloadRequest, Download, PlaybackParameters, EventMap
-} from "./interfaces";
+} from './interfaces';
 
 const { TrackPlayerModule: TrackPlayer } = NativeModules;
-const emitter = Platform.OS !== "android" ? new NativeEventEmitter(TrackPlayer) : DeviceEventEmitter;
+const emitter = Platform.OS !== 'android' ? new NativeEventEmitter(TrackPlayer) : DeviceEventEmitter;
 
 // MARK: - Helpers
 
 function resolveImportedPath(path?: number | string) {
-  if (!path) return undefined;
+  if (!path) {return undefined;}
   return resolveAssetSource(path) || path;
 }
 
@@ -43,9 +44,9 @@ type ServiceHandler = () => Promise<void>
  * Register the playback service. The service will run as long as the player runs.
  */
 function registerPlaybackService(factory: () => ServiceHandler) {
-  if (Platform.OS === "android") {
+  if (Platform.OS === 'android') {
     // Registers the headless task
-    AppRegistry.registerHeadlessTask("TrackPlayer", factory);
+    AppRegistry.registerHeadlessTask('TrackPlayer', factory);
   } else {
     // Initializes and runs the service in the next tick
     setImmediate(factory());
@@ -73,7 +74,7 @@ async function add(tracks: Track | Track[], insertBeforeIndex?: number): Promise
     tracks = [tracks];
   }
 
-  if (tracks.length < 1) return;
+  if (tracks.length < 1) {return;}
 
   for (let i = 0; i < tracks.length; i++) {
     // Clone the object before modifying it
