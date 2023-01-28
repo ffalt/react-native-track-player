@@ -1,4 +1,4 @@
-import { Download, DownloadRequest } from "./interfaces";
+import { Download, DownloadRequest } from './interfaces';
 export declare class TrackPlayerDownloadManager {
     private downloadChangeSubscriptions;
     private downloadsChangeSubscriptions;
@@ -28,3 +28,4 @@ export declare class TrackPlayerDownloadManager {
 }
 export declare function useTrackPlayerCurrentDownloadsCached(cache: TrackPlayerDownloadManager): Array<Download> | undefined;
 export declare function useTrackPlayerDownloadCached(id: string, cache: TrackPlayerDownloadManager): Download | undefined;
+export declare function useTrackPlayerDownloadsCached(cache: TrackPlayerDownloadManager): Array<Download> | undefined;
