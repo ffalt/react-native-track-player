@@ -19,6 +19,7 @@ import static com.guichaguri.trackplayer.downloader.DownloadUtils.DOWNLOAD_NOTIF
 
 import android.app.Notification;
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -31,6 +32,7 @@ import com.google.android.exoplayer2.ui.DownloadNotificationHelper;
 import com.google.android.exoplayer2.util.NotificationUtil;
 import com.google.android.exoplayer2.util.Util;
 import com.guichaguri.trackplayer.R;
+import com.guichaguri.trackplayer.service.Utils;
 
 import java.util.List;
 
@@ -72,6 +74,7 @@ public class AudioDownloadService extends DownloadService {
     @Override
     protected Notification getForegroundNotification(
             List<Download> downloads, @Requirements.RequirementFlags int notMetRequirements) {
+       // Log.d(Utils.LOG, "getForegroundNotification");
         return DownloadUtils.getDownloadNotificationHelper(/* context= */ this)
                 .buildProgressNotification(
                         /* context= */ this,

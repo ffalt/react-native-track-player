@@ -147,7 +147,6 @@ public class MusicManager implements OnAudioFocusChangeListener {
 
     @SuppressLint("WakelockTimeout")
     public void onPlay() {
-        Log.d(Utils.LOG, "onPlay");
         if (playback == null) return;
 
         Track track = playback.getCurrentTrack();
@@ -173,8 +172,6 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onPause() {
-        Log.d(Utils.LOG, "onPause");
-
         // Unregisters the noisy receiver
         if (receivingNoisyEvents) {
             service.unregisterReceiver(noisyReceiver);
@@ -190,8 +187,6 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onStop() {
-        Log.d(Utils.LOG, "onStop");
-
         // Unregisters the noisy receiver
         if (receivingNoisyEvents) {
             service.unregisterReceiver(noisyReceiver);
@@ -209,8 +204,6 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onStateChange(int state) {
-        Log.d(Utils.LOG, "onStateChange " + state);
-
         Bundle bundle = new Bundle();
         bundle.putInt("state", state);
         service.emit(MusicEvents.PLAYBACK_STATE, bundle);
@@ -220,34 +213,28 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onQueueChange() {
-        Log.d(Utils.LOG, "onQueueChange");
         service.emit(MusicEvents.QUEUE_CHANGED, null);
     }
 
     public void onShuffleChange(boolean value) {
-        Log.d(Utils.LOG, "onShuffleChange");
-
         Bundle bundle = new Bundle();
         bundle.putBoolean("enabled", value);
         service.emit(MusicEvents.SHUFFLE_CHANGED, bundle);
     }
 
     public void onRepeatModeChange(int repeatMode) {
-        Log.d(Utils.LOG, "onRepeatModeChange");
         Bundle bundle = new Bundle();
         bundle.putInt("mode", repeatMode);
         service.emit(MusicEvents.REPEATMODE_CHANGED, bundle);
     }
 
     public void onDownloadsPausedChange(boolean downloadsPaused) {
-        Log.d(Utils.LOG, "onDownloadsPausedChange");
         Bundle bundle = new Bundle();
         bundle.putBoolean("paused", downloadsPaused);
         service.emit(MusicEvents.DOWNLOADS_PAUSED_CHANGED, bundle);
     }
 
     public void onDownloadStateChange(String id, int state) {
-        Log.d(Utils.LOG, "onDownloadStateChange");
         Bundle bundle = new Bundle();
         bundle.putString("id", id);
         bundle.putInt("state", state);
@@ -255,7 +242,6 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onDownloadProgressStateChange(String id, long contentLength, long bytesDownloaded, float percentDownloaded) {
-        Log.d(Utils.LOG, "onDownloadProgressStateChange");
         Bundle bundle = new Bundle();
         bundle.putString("id", id);
         bundle.putLong("contentLength", contentLength);
@@ -265,12 +251,10 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onDownloadsChange() {
-        Log.d(Utils.LOG, "onDownloadsChange");
         service.emit(MusicEvents.DOWNLOADS_CHANGED, null);
     }
 
     public void onPlaybackParameterChange(float speed, float pitch) {
-        Log.d(Utils.LOG, "onPlaybackParameterChange");
         Bundle bundle = new Bundle();
         bundle.putFloat("speed", speed);
         bundle.putFloat("pitch", pitch);
@@ -278,16 +262,12 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onScrobble(Integer trackIndex) {
-        Log.d(Utils.LOG, "onScrobble");
-
         Bundle bundle = new Bundle();
         if (trackIndex != null) bundle.putInt("trackIndex", trackIndex);
         service.emit(MusicEvents.SCROBBLE, bundle);
     }
 
     public void onTrackUpdate(Integer prevIndex, long prevPos, Integer nextIndex, Track next) {
-        Log.d(Utils.LOG, "onTrackUpdate");
-
         if (playback.shouldAutoUpdateMetadata() && next != null)
             metadata.updateMetadata(playback, next);
 
@@ -303,8 +283,6 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onEnd(Integer previousIndex, long prevPos) {
-        Log.d(Utils.LOG, "onEnd");
-
         Bundle bundle = new Bundle();
         if (previousIndex != null) bundle.putInt("track", previousIndex);
         bundle.putDouble("position", Utils.toSeconds(prevPos));
@@ -312,8 +290,6 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onMetadataReceived(String source, String title, String url, String artist, String album, String date, String genre) {
-        Log.d(Utils.LOG, "onMetadataReceived: " + source);
-
         Bundle bundle = new Bundle();
         bundle.putString("source", source);
         bundle.putString("title", title);
@@ -326,9 +302,7 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void onError(String code, String error) {
-        Log.d(Utils.LOG, "onError");
         Log.e(Utils.LOG, "Playback error: " + code + " - " + error);
-
         Bundle bundle = new Bundle();
         bundle.putString("code", code);
         bundle.putString("message", error);
@@ -337,30 +311,24 @@ public class MusicManager implements OnAudioFocusChangeListener {
 
     @Override
     public void onAudioFocusChange(int focus) {
-        Log.d(Utils.LOG, "onDuck");
-
         boolean permanent = false;
         boolean paused = false;
         boolean ducking = false;
 
         switch (focus) {
             case AudioManager.AUDIOFOCUS_LOSS:
-                Log.d(Utils.LOG, "onDuck AudioManager.AUDIOFOCUS_LOSS");
                 permanent = true;
                 abandonFocus();
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                Log.d(Utils.LOG, "onDuck AudioManager.AUDIOFOCUS_LOSS_TRANSIENT");
                 paused = true;
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                Log.d(Utils.LOG, "onDuck AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
                 if (alwaysPauseOnInterruption)
                     paused = true;
                 else
                     ducking = true;
                 break;
             default:
-                Log.d(Utils.LOG, "onDuck AudioManager." + focus);
                 break;
         }
 
@@ -380,7 +348,6 @@ public class MusicManager implements OnAudioFocusChangeListener {
 
     private void requestFocus() {
         if (hasAudioFocus) return;
-        Log.d(Utils.LOG, "Requesting audio focus...");
         hasAudioFocus = true;
 
         AudioManager manager = (AudioManager) service.getSystemService(Context.AUDIO_SERVICE);
@@ -404,14 +371,10 @@ public class MusicManager implements OnAudioFocusChangeListener {
             r = manager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
         }
         hasAudioFocus = r == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
-        Log.d(Utils.LOG, "hasAudioFocus: " + hasAudioFocus);
-
     }
 
     private void abandonFocus() {
         if (!hasAudioFocus) return;
-        Log.d(Utils.LOG, "Abandoning audio focus...");
-
         AudioManager manager = (AudioManager) service.getSystemService(Context.AUDIO_SERVICE);
         int r;
 
@@ -428,8 +391,6 @@ public class MusicManager implements OnAudioFocusChangeListener {
     }
 
     public void destroy() {
-        Log.d(Utils.LOG, "Releasing service resources...");
-
         // Disable audio focus
         abandonFocus();
 

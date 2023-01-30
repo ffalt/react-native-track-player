@@ -58,10 +58,15 @@ const ItemProgress: React.FC<{ id: string; state: DownloadState }> = ({ id, stat
     }
   });
 
-  const width = state === DownloadState.Completed ? '100%' : `${progress.percent}%`;
+  let width = '0%';
+  if (state === DownloadState.Completed) {
+    width = '100%';
+  } else if (progress?.percent > 0) {
+    width = `${progress.percent}%`;
+  }
   return (
-    <View style={{ height: 2, backgroundColor: '#c0bfbf', padding: 0, marginTop: 2, marginBottom: 2 }}>
-      <View style={{ height: 2, backgroundColor: '#60b208', width }} />
+    <View style={{ height: 2, backgroundColor: "#c0bfbf", padding: 0, marginTop: 2, marginBottom: 2 }}>
+      <View style={{ height: 2, backgroundColor: "#60b208", width }} />
     </View>
   );
 };

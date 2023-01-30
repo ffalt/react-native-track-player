@@ -180,7 +180,8 @@ public class Utils {
             );
             channel.setShowBadge(false);
             channel.setSound(null, null);
-            ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+            ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE))
+                    .createNotificationChannel(channel);
         }
         return Utils.NOTIFICATION_CHANNEL;
     }

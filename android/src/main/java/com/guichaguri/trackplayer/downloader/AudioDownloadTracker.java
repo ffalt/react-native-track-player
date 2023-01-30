@@ -30,7 +30,7 @@ public class AudioDownloadTracker implements DownloadManager.Listener {
 
     private static final String TAG = "AudioDownloadTracker";
     protected final Handler handler = new Handler();
-    protected final int updateInterval = 1000;
+    protected final int updateInterval = 500;
     private boolean periodicUpdatesStarted;
     private final Context context;
     private final DownloadManager downloadManager;
@@ -179,6 +179,12 @@ public class AudioDownloadTracker implements DownloadManager.Listener {
             if (download.state == Download.STATE_DOWNLOADING) {
                 startPeriodicUpdates();
             } else if (download.state == Download.STATE_COMPLETED) {
+                manager.onDownloadProgressStateChange(
+                        download.request.id,
+                        download.contentLength,
+                        download.getBytesDownloaded(),
+                        download.getPercentDownloaded()
+                );
                 manager.onDownloadsChange();
             }
         }

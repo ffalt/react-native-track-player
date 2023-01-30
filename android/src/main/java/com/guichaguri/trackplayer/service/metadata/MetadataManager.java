@@ -10,20 +10,25 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Action;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.RatingCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
 import androidx.media.session.MediaButtonReceiver;
+
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
+
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.views.imagehelper.ResourceDrawableIdHelper;
+
 import com.guichaguri.trackplayer.R;
 import com.guichaguri.trackplayer.service.MusicManager;
 import com.guichaguri.trackplayer.service.MusicService;
@@ -31,6 +36,7 @@ import com.guichaguri.trackplayer.service.Utils;
 import com.guichaguri.trackplayer.service.models.Track;
 import com.guichaguri.trackplayer.service.models.TrackMetadata;
 import com.guichaguri.trackplayer.service.player.ExoPlayback;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,7 +87,7 @@ public class MetadataManager {
         openApp.setAction(Intent.ACTION_VIEW);
         openApp.setData(Uri.parse("trackplayer://notification.click"));
 
-        final int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_CANCEL_CURRENT;
+        final int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_CANCEL_CURRENT;
         builder.setContentIntent(PendingIntent.getActivity(context, 0, openApp, flag));
 
         builder.setSmallIcon(R.drawable.play);

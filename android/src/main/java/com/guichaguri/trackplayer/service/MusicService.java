@@ -6,11 +6,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.media.session.MediaButtonReceiver;
+
+import com.google.android.exoplayer2.offline.DownloadService;
 
 import com.facebook.react.HeadlessJsTaskService;
 import com.facebook.react.ReactInstanceManager;
@@ -18,9 +21,11 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.jstasks.HeadlessJsTaskConfig;
 
+import com.guichaguri.trackplayer.downloader.AudioDownloadService;
 import com.guichaguri.trackplayer.downloader.AudioDownloadTracker;
 import com.guichaguri.trackplayer.downloader.DownloadUtils;
 import com.guichaguri.trackplayer.service.Utils;
+import com.guichaguri.trackplayer.R;
 
 import static android.app.Service.START_NOT_STICKY;
 
@@ -82,7 +87,7 @@ public class MusicService extends HeadlessJsTaskService {
                 String channel = Utils.getNotificationChannel((Context) this);
 
                 // Sets the service to foreground with an empty notification
-                startForeground(1, new NotificationCompat.Builder(this, channel).build());
+                startForeground(1, new NotificationCompat.Builder(this, channel).setSmallIcon(R.drawable.play).build());
                 // Stops the service right after
                 stopSelf();
             }
@@ -124,8 +129,22 @@ public class MusicService extends HeadlessJsTaskService {
     public void onCreate() {
         super.onCreate();
         String channel = Utils.getNotificationChannel((Context) this);
-        startForeground(1, new NotificationCompat.Builder(this, channel).build());
+        startForeground(1, new NotificationCompat.Builder(this, channel).setSmallIcon(R.drawable.play).build());
     }
+
+    private void startDownloadService() {
+        // Starting the service in the foreground causes notification flicker if there is no scheduled
+        // action. Starting it in the background throws an exception if the app is in the background too
+        // (e.g. if device screen is locked).
+        Log.d(Utils.LOG, "startDownloadService");
+        try {
+            DownloadService.start((Context)this, AudioDownloadService.class);
+        } catch (IllegalStateException e) {
+            Log.e(Utils.LOG, e.toString());
+            DownloadService.startForeground((Context)this, AudioDownloadService.class);
+        }
+    }
+
 
     @Override
     public void onDestroy() {
