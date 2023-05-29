@@ -1,15 +1,17 @@
 package com.guichaguri.trackplayer.service.player;
 
-import com.google.android.exoplayer2.metadata.mp4.MdtaMetadataEntry;
-import com.google.android.exoplayer2.metadata.Metadata;
-import com.google.android.exoplayer2.metadata.icy.IcyHeaders;
-import com.google.android.exoplayer2.metadata.icy.IcyInfo;
-import com.google.android.exoplayer2.metadata.id3.TextInformationFrame;
-import com.google.android.exoplayer2.metadata.id3.UrlLinkFrame;
-import com.google.android.exoplayer2.metadata.vorbis.VorbisComment;
+import androidx.media3.common.Metadata;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.extractor.metadata.icy.IcyHeaders;
+import androidx.media3.extractor.metadata.icy.IcyInfo;
+import androidx.media3.extractor.metadata.id3.TextInformationFrame;
+import androidx.media3.extractor.metadata.id3.UrlLinkFrame;
+import androidx.media3.extractor.metadata.mp4.MdtaMetadataEntry;
+import androidx.media3.extractor.metadata.vorbis.VorbisComment;
+
 import com.guichaguri.trackplayer.service.MusicManager;
 
-public class SourceMetadata {
+@UnstableApi public class SourceMetadata {
 
     /**
      * Reads metadata and triggers the metadata-received event
@@ -153,18 +155,19 @@ public class SourceMetadata {
 
             MdtaMetadataEntry mdta = (MdtaMetadataEntry) entry;
             String key = mdta.key;
+            String encoding = "UTF-8";
 
             try {
                 if (key.equals("com.apple.quicktime.title")) {
-                    title = new String(mdta.value, "UTF-8");
+                    title = new String(mdta.value, encoding);
                 } else if (key.equals("com.apple.quicktime.artist")) {
-                    artist = new String(mdta.value, "UTF-8");
+                    artist = new String(mdta.value, encoding);
                 } else if (key.equals("com.apple.quicktime.album")) {
-                    album = new String(mdta.value, "UTF-8");
+                    album = new String(mdta.value, encoding);
                 } else if (key.equals("com.apple.quicktime.creationdate")) {
-                    date = new String(mdta.value, "UTF-8");
+                    date = new String(mdta.value, encoding);
                 } else if (key.equals("com.apple.quicktime.genre")) {
-                    genre = new String(mdta.value, "UTF-8");
+                    genre = new String(mdta.value, encoding);
                 }
             } catch(Exception ex) {
                 // Ignored

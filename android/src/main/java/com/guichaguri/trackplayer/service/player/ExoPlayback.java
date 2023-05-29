@@ -7,24 +7,24 @@ import android.os.Handler;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.Timeline.Window;
-import com.google.android.exoplayer2.Tracks;
-import com.google.android.exoplayer2.database.DatabaseProvider;
-import com.google.android.exoplayer2.database.StandaloneDatabaseProvider;
-import com.google.android.exoplayer2.metadata.Metadata;
-import com.google.android.exoplayer2.metadata.MetadataOutput;
-import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
-import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
-import com.google.android.exoplayer2.upstream.cache.SimpleCache;
+import androidx.media3.common.C;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.common.Timeline;
+import androidx.media3.common.Timeline.Window;
+import androidx.media3.common.Tracks;
+import androidx.media3.database.DatabaseProvider;
+import androidx.media3.database.StandaloneDatabaseProvider;
+import androidx.media3.common.Metadata;
+import androidx.media3.exoplayer.source.ConcatenatingMediaSource;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.cache.CacheDataSource;
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor;
+import androidx.media3.datasource.cache.SimpleCache;
 
 import com.guichaguri.trackplayer.downloader.DownloadUtils;
 import com.guichaguri.trackplayer.service.MusicManager;
@@ -34,13 +34,12 @@ import com.guichaguri.trackplayer.service.models.Track;
 import java.io.File;
 import java.util.*;
 
-
 import com.facebook.react.bridge.Promise;
 
 /**
  * @author Guichaguri
  */
-public class ExoPlayback {
+@UnstableApi public class ExoPlayback {
 
     protected final Context context;
     protected final MusicManager manager;
@@ -576,8 +575,6 @@ public class ExoPlayback {
         }
         snapShotMediaPosition();
     }
-
-    //  implements MetadataOutput
 
     private class ExoPlayerListener implements Player.Listener {
 

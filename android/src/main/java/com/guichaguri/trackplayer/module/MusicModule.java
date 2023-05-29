@@ -1,6 +1,6 @@
 package com.guichaguri.trackplayer.module;
 
-import static com.google.android.exoplayer2.offline.Download.STATE_QUEUED;
+import static androidx.media3.exoplayer.offline.Download.STATE_QUEUED;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -15,10 +15,10 @@ import android.util.Log;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.facebook.react.bridge.*;
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.offline.Download;
+import androidx.media3.common.C;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player;
+import androidx.media3.exoplayer.offline.Download;
 import com.guichaguri.trackplayer.downloader.DownloadUtils;
 import com.guichaguri.trackplayer.service.MusicBinder;
 import com.guichaguri.trackplayer.service.MusicService;

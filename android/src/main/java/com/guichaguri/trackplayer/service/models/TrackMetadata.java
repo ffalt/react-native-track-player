@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.RatingCompat;
+
 import com.guichaguri.trackplayer.service.Utils;
 
 import static android.support.v4.media.MediaMetadataCompat.*;

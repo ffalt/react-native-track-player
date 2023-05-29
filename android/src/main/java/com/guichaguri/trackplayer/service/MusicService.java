@@ -2,7 +2,6 @@ package com.guichaguri.trackplayer.service;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -13,7 +12,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.media.session.MediaButtonReceiver;
 
-import com.google.android.exoplayer2.offline.DownloadService;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.offline.DownloadService;
 
 import com.facebook.react.HeadlessJsTaskService;
 import com.facebook.react.ReactInstanceManager;
@@ -23,13 +23,12 @@ import com.facebook.react.jstasks.HeadlessJsTaskConfig;
 
 import com.guichaguri.trackplayer.downloader.AudioDownloadService;
 import com.guichaguri.trackplayer.downloader.AudioDownloadTracker;
-import com.guichaguri.trackplayer.downloader.DownloadUtils;
 import com.guichaguri.trackplayer.service.Utils;
 import com.guichaguri.trackplayer.R;
 
 import static android.app.Service.START_NOT_STICKY;
 
-/**
+@UnstableApi /**
  * @author Guichaguri
  */
 public class MusicService extends HeadlessJsTaskService {

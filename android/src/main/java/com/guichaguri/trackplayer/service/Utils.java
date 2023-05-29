@@ -13,7 +13,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.views.imagehelper.ResourceDrawableIdHelper;
-import com.google.android.exoplayer2.upstream.RawResourceDataSource;
+import androidx.media3.datasource.RawResourceDataSource;
 
 /**
  * @author Guichaguri

@@ -19,29 +19,29 @@ import static com.guichaguri.trackplayer.downloader.DownloadUtils.DOWNLOAD_NOTIF
 
 import android.app.Notification;
 import android.content.Context;
-import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.exoplayer2.offline.Download;
-import com.google.android.exoplayer2.offline.DownloadManager;
-import com.google.android.exoplayer2.offline.DownloadService;
-import com.google.android.exoplayer2.scheduler.Requirements;
-import com.google.android.exoplayer2.scheduler.Scheduler;
-import com.google.android.exoplayer2.ui.DownloadNotificationHelper;
-import com.google.android.exoplayer2.util.NotificationUtil;
-import com.google.android.exoplayer2.util.Util;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.offline.Download;
+import androidx.media3.exoplayer.offline.DownloadManager;
+import androidx.media3.exoplayer.offline.DownloadService;
+import androidx.media3.exoplayer.scheduler.Requirements;
+import androidx.media3.exoplayer.scheduler.Scheduler;
+import androidx.media3.exoplayer.offline.DownloadNotificationHelper;
+import androidx.media3.common.util.NotificationUtil;
+import androidx.media3.common.util.Util;
+
 import com.guichaguri.trackplayer.R;
-import com.guichaguri.trackplayer.service.Utils;
 
 import java.util.List;
 
 /**
  * A service for downloading media.
  */
-public class AudioDownloadService extends DownloadService {
+@UnstableApi public class AudioDownloadService extends DownloadService {
 
-    private static final int JOB_ID = 1;
     private static final int FOREGROUND_NOTIFICATION_ID = 1;
 
     public AudioDownloadService() {
@@ -53,6 +53,7 @@ public class AudioDownloadService extends DownloadService {
                 /* channelDescriptionResourceId= */ 0);
     }
 
+    @NonNull
     @Override
     protected DownloadManager getDownloadManager() {
         // This will only happen once, because getDownloadManager is guaranteed to be called only once
@@ -71,10 +72,11 @@ public class AudioDownloadService extends DownloadService {
         return null;
     }
 
+    @NonNull
     @Override
     protected Notification getForegroundNotification(
-            List<Download> downloads, @Requirements.RequirementFlags int notMetRequirements) {
-       // Log.d(Utils.LOG, "getForegroundNotification");
+            @NonNull List<Download> downloads, @Requirements.RequirementFlags int notMetRequirements) {
+        // Log.d(Utils.LOG, "getForegroundNotification");
         return DownloadUtils.getDownloadNotificationHelper(/* context= */ this)
                 .buildProgressNotification(
                         /* context= */ this,
@@ -107,7 +109,9 @@ public class AudioDownloadService extends DownloadService {
 
         @Override
         public void onDownloadChanged(
-                DownloadManager downloadManager, Download download, @Nullable Exception finalException) {
+                @NonNull DownloadManager downloadManager,
+                Download download, @Nullable Exception finalException
+        ) {
             Notification notification;
             if (download.state == Download.STATE_COMPLETED) {
                 notification =
