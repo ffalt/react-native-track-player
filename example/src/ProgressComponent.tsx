@@ -16,7 +16,7 @@ export function ProgressComponent(): JSX.Element {
     <>
       <Text style={demoStyles.infoLabel}>Position</Text>
       <Slider
-        style={{ height: 40, flexdirection: 'row' }}
+        style={{ height: 40, flexDirection: 'row' }}
         value={progress.position}
         minimumValue={0}
         maximumValue={progress.duration}

@@ -1,34 +1,34 @@
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, Text, View } from "react-native";
 import TrackPlayer, {
   Download,
   DownloadState,
   Event,
   useTrackPlayerCurrentDownloads,
   useTrackPlayerDownloadsPaused,
-  useTrackPlayerEvent,
-} from 'react-native-track-player';
-import { useState } from 'react';
-import { Button } from './Button';
-import { demoStyles } from './utils';
+  useTrackPlayerEvent
+} from "react-native-track-player";
+import { useState } from "react";
+import { Button } from "./Button";
+import { demoStyles } from "./utils";
 
 const downloadStateToString = (mode: DownloadState): string => {
   switch (mode) {
     case DownloadState.Completed:
-      return 'Completed';
+      return "Completed";
     case DownloadState.Downloading:
-      return 'Downloading';
+      return "Downloading";
     case DownloadState.Failed:
-      return 'Failed';
+      return "Failed";
     case DownloadState.Queued:
-      return 'Queued';
+      return "Queued";
     case DownloadState.Removing:
-      return 'Removing';
+      return "Removing";
     case DownloadState.Restarting:
-      return 'Restarting';
+      return "Restarting";
     case DownloadState.Stopped:
-      return 'Stopped';
+      return "Stopped";
     default:
-      return 'Unknown';
+      return "Unknown";
   }
 };
 
@@ -37,7 +37,7 @@ const Header: React.FC = () => {
   return (
     <View style={demoStyles.buttonBar}>
       <Button
-        label={`Downloading (${paused ? 'paused' : 'enabled'})`}
+        label={`Downloading (${paused ? "paused" : "enabled"})`}
         onPress={() => TrackPlayer.toggleDownloadsPaused().catch(console.error)}
       />
       <Button label="Resume" onPress={() => TrackPlayer.resumeDownloads().catch(console.error)} />
@@ -58,15 +58,15 @@ const ItemProgress: React.FC<{ id: string; state: DownloadState }> = ({ id, stat
     }
   });
 
-  let width = '0%';
+  let width = "0%";
   if (state === DownloadState.Completed) {
-    width = '100%';
+    width = "100%";
   } else if (progress?.percent > 0) {
     width = `${progress.percent}%`;
   }
   return (
     <View style={{ height: 2, backgroundColor: "#c0bfbf", padding: 0, marginTop: 2, marginBottom: 2 }}>
-      <View style={{ height: 2, backgroundColor: "#60b208", width }} />
+      <View style={{ height: 2, backgroundColor: "#60b208", width: width as any }} />
     </View>
   );
 };

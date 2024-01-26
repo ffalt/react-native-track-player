@@ -14,11 +14,11 @@ const Item: React.FC<{ track: Track }> = ({ track }) => (
       </Text>
     </View>
     <View style={demoStyles.itemButtons}>
-      <Button label="Add to Queue" onPress={() => TrackPlayer.add(track).catch(console.error)} />
+      <Button label="Add to Play Queue" onPress={() => TrackPlayer.add(track).catch(console.error)} />
       <Button
         label="Download"
         onPress={() =>
-          TrackPlayer.addDownload({ id: track.url as string, url: track.url as string }).catch(console.error)
+          TrackPlayer.addDownloads([{ id: track.url as string, url: track.url as string }]).catch(console.error)
         }
       />
     </View>
@@ -27,7 +27,7 @@ const Item: React.FC<{ track: Track }> = ({ track }) => (
 
 const Header: React.FC = () => (
   <View style={demoStyles.buttonBar}>
-    <Button label="Add all to Queue" onPress={() => TrackPlayer.add(demoTracks).catch(console.error)} />
+    <Button label="Add all to Play Queue" onPress={() => TrackPlayer.add(demoTracks).catch(console.error)} />
     <Button
       label="Download all"
       onPress={() =>

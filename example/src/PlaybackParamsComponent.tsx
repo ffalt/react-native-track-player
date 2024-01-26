@@ -25,7 +25,7 @@ export function PlaybackParamsComponent(): JSX.Element {
           <Text>{params.speed.toFixed(3)}</Text>
         </View>
         <Slider
-          style={{ height: 40, flexdirection: "row" }}
+          style={{ height: 40, flexDirection: "row" }}
           value={speed}
           minimumValue={minSpeed}
           maximumValue={maxSpeed}
@@ -40,7 +40,7 @@ export function PlaybackParamsComponent(): JSX.Element {
           <Text>{params.pitch.toFixed(3)}</Text>
         </View>
         <Slider
-          style={{ height: 40, flexdirection: "row" }}
+          style={{ height: 40, flexDirection: "row" }}
           value={pitch}
           minimumValue={minPitch}
           maximumValue={maxPitch}
