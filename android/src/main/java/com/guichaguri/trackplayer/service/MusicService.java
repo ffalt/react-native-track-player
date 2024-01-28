@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.content.pm.ServiceInfo;
+import android.os.Build;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -84,9 +86,14 @@ public class MusicService extends HeadlessJsTaskService {
             // Checks whether there is a React activity
             if(reactContext == null || !reactContext.hasCurrentActivity()) {
                 String channel = Utils.getNotificationChannel((Context) this);
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channel).setSmallIcon(R.drawable.play);
 
                 // Sets the service to foreground with an empty notification
-                startForeground(1, new NotificationCompat.Builder(this, channel).setSmallIcon(R.drawable.play).build());
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    startForeground(1, builder.build());
+                } else {
+                    startForeground(1, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+                }
                 // Stops the service right after
                 stopSelf();
             }
@@ -128,7 +135,12 @@ public class MusicService extends HeadlessJsTaskService {
     public void onCreate() {
         super.onCreate();
         String channel = Utils.getNotificationChannel((Context) this);
-        startForeground(1, new NotificationCompat.Builder(this, channel).setSmallIcon(R.drawable.play).build());
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channel).setSmallIcon(R.drawable.play);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            startForeground(1, builder.build());
+        } else {
+            startForeground(1, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+        }
     }
 
     private void startDownloadService() {

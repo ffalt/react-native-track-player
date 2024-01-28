@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.content.pm.ServiceInfo;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Action;
@@ -323,7 +324,11 @@ public class MetadataManager {
 
     private void updateNotification() {
         if(session.isActive()) {
-            service.startForeground(1, builder.build());
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                service.startForeground(1, builder.build());
+            } else {
+                service.startForeground(1, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+            }
         } else {
             service.stopForeground(true);
         }
