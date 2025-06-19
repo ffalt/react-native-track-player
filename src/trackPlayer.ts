@@ -19,7 +19,7 @@ const emitter = Platform.OS !== 'android' ? new NativeEventEmitter(TrackPlayer) 
 
 function resolveImportedPath(path?: number | string) {
   if (!path) {return undefined;}
-  return resolveAssetSource(path) || path;
+  return resolveAssetSource.default(path) || path;
 }
 
 // MARK: - General API

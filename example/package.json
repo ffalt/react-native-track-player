@@ -19,34 +19,36 @@
     "sync": "yarn sync:ios && yarn sync:android"
   },
   "dependencies": {
-    "react": "18.2.0",
-    "react-native": "0.73.2",
-    "react-native-safe-area-context": "^4.8.2",
-    "react-native-screens": "^3.29.0",
+    "react": "19.1.0",
+    "react-native": "0.80.0",
+    "react-native-safe-area-context": "^5.4.1",
+    "react-native-screens": "^4.11.1",
     "react-native-track-player": "file:.."
   },
   "devDependencies": {
-    "@babel/core": "^7.23.9",
-    "@babel/preset-env": "^7.23.9",
-    "@babel/runtime": "^7.23.9",
-    "@react-native-community/slider": "4.5.0",
-    "@react-native/babel-preset": "0.73.20",
-    "@react-native/eslint-config": "0.73.2",
-    "@react-native/metro-config": "0.73.3",
-    "@react-native/typescript-config": "0.74.0",
-    "@react-navigation/bottom-tabs": "6.5.11",
-    "@react-navigation/native": "6.1.9",
-    "@types/react": "^18.2.48",
-    "@types/react-test-renderer": "^18.0.7",
-    "babel-jest": "^29.7.0",
+    "@babel/core": "^7.27.4",
+    "@babel/preset-env": "^7.27.2",
+    "@babel/runtime": "^7.27.6",
+    "@react-native-community/slider": "4.5.7",
+    "@react-native/babel-preset": "0.80.0",
+    "@react-native/eslint-config": "0.80.0",
+    "@react-native/metro-config": "0.80.0",
+    "@react-native/typescript-config": "0.80.0",
+    "@react-navigation/bottom-tabs": "7.3.17",
+    "@react-navigation/native": "7.1.13",
+    "@react-native-community/cli": "19.0.0",
+    "@react-native-community/cli-platform-android": "19.0.0",
+    "@types/react": "^19.1.8",
+    "@types/react-test-renderer": "^19.1.0",
+    "babel-jest": "^30.0.2",
     "cpx": "^1.5.0",
-    "eslint": "^8.56.0",
-    "jest": "^29.7.0",
-    "prettier": "3.2.4",
-    "react-test-renderer": "18.2.0",
-    "typescript": "5.0.4"
+    "eslint": "^9.29.0",
+    "jest": "^30.0.2",
+    "prettier": "3.5.3",
+    "react-test-renderer": "19.1.0",
+    "typescript": "5.8.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

@@ -22,7 +22,7 @@ type Handler<E extends keyof EventMap> = (payload: EventMap[E]) => void;
  * @param handler - callback invoked when the event fires
  */
 export function useTrackPlayerEvent<E extends keyof EventMap>(event: E, handler: (payload: EventMap[E]) => void) {
-  const savedHandler = useRef<Handler<E>>();
+  const savedHandler = useRef<Handler<E>>(undefined);
 
   useEffect(() => {
     savedHandler.current = handler;
@@ -46,7 +46,7 @@ export function useTrackPlayerEvent<E extends keyof EventMap>(event: E, handler:
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useTrackPlayerEvents(events: Event[], handler: Handler<any>) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const savedHandler = useRef<Handler<any>>();
+  const savedHandler = useRef<Handler<any>>(undefined);
 
   useEffect(() => {
     savedHandler.current = handler;
