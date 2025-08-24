@@ -328,7 +328,8 @@ export interface Track extends TrackMetadataBase {
     contentType?: string;
     pitchAlgorithm?: PitchAlgorithm;
     headers?: {
-        [key: string]: any;
+        [key: string]: string;
     };
+    id?: string;
     [key: string]: any;
 }

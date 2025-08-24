@@ -315,9 +315,9 @@ export interface Track extends TrackMetadataBase {
   userAgent?: string;
   contentType?: string;
   pitchAlgorithm?: PitchAlgorithm;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  headers?: { [key: string]: any };
+  headers?: { [key: string]: string };
 
+  id?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
