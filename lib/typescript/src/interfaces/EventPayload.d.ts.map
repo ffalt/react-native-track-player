@@ -1,0 +1,1 @@
+{"version":3,"file":"EventPayload.d.ts","sourceRoot":"","sources":["../../../../src/interfaces/EventPayload.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,KAAK,EAAE,MAAM,oBAAoB,CAAC;AAE3C,MAAM,WAAW,YAAY;IAC3B,IAAI,EAAE,KAAK,CAAC;IAEZ,CAAC,GAAG,EAAE,MAAM,GAAG,OAAO,CAAC;CACxB"}

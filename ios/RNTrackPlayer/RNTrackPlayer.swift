@@ -553,8 +553,8 @@ public class RNTrackPlayer: RCTEventEmitter {
 
 
     @objc(setPlaybackParameters:resolver:rejecter:)
-    public func setPlaybackParameters(params:  [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
-        player.rate = params["speed"] as! Float
+    public func setPlaybackParameters(speed: Float, pitch: Float, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        player.rate = speed
         handlePlaybackParamterChange()
         resolve(NSNull())
     }

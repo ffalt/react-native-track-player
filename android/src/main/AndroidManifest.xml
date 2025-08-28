@@ -9,7 +9,6 @@
 
     <application>
 
-        <!-- The main service, handles playback, playlists and media buttons -->
         <service android:name="com.guichaguri.trackplayer.service.MusicService"
                  android:enabled="true"
                  android:exported="true"
@@ -17,20 +16,15 @@
         >
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
 
-        <!-- A receiver that will receive media buttons. Required on pre-lollipop devices -->
-        <receiver android:name="androidx.media.session.MediaButtonReceiver" android:enabled="true" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
-        </receiver>
-
         <service android:name="com.guichaguri.trackplayer.downloader.AudioDownloadService"
                  android:foregroundServiceType="dataSync"
+                 android:enabled="true"
                  android:exported="false">
-            <!-- This is needed for Scheduler -->
             <intent-filter>
                 <action android:name="com.google.android.exoplayer.downloadService.action.RESTART"/>
                 <category android:name="android.intent.category.DEFAULT"/>

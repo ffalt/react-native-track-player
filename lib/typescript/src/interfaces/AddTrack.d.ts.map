@@ -1,0 +1,1 @@
+{"version":3,"file":"AddTrack.d.ts","sourceRoot":"","sources":["../../../../src/interfaces/AddTrack.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,KAAK,KAAK,EAAE,MAAM,SAAS,CAAC;AACrC,OAAO,EAAE,KAAK,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAEvD,MAAM,MAAM,QAAQ,GAAG,KAAK,GAAG;IAC7B,GAAG,EAAE,MAAM,GAAG,cAAc,CAAC;IAC7B,OAAO,CAAC,EAAE,MAAM,GAAG,cAAc,CAAC;CACnC,CAAC"}

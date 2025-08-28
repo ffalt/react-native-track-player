@@ -1,0 +1,1 @@
+{"version":3,"names":["useTrackPlayerPlaybackParameters","useTrackPlayerPlaybackSpeed","params","speed"],"sourceRoot":"../../../src","sources":["hooks/useTrackPlayerPlaybackSpeed.ts"],"mappings":";;AAAA,SAASA,gCAAgC,QAAQ,uCAAoC;AAErF,OAAO,SAASC,2BAA2BA,CAAA,EAAW;EACpD,MAAMC,MAAM,GAAGF,gCAAgC,CAAC,CAAC;EACjD,OAAOE,MAAM,CAACC,KAAK;AACrB","ignoreList":[]}

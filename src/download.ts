@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { EmitterSubscription } from 'react-native';
-import { Download, DownloadState, DownloadRequest, Event } from './interfaces';
-import TrackPlayer from './trackPlayer';
+import { type EmitterSubscription } from 'react-native';
+import { type Download } from './interfaces/Download';
+import { type DownloadRequest } from './interfaces/DownloadRequest';
+import { Event } from './constants/Event';
+import { DownloadState } from "./constants/DownloadState";
+import { addDownloads, addEventListener, clearDownloads, getDownload, getDownloads, removeDownload, setDownloadHeaders } from "./trackPlayer";
 
 export class TrackPlayerDownloadManager {
   private downloadChangeSubscriptions = new Map<string, Array<(download: Download) => void>>();
@@ -21,12 +23,12 @@ export class TrackPlayerDownloadManager {
 
   connect(): void {
     this.subscriptions.push(
-      TrackPlayer.addEventListener(Event.DownloadChanged, ({ id, state }) => {
+      addEventListener(Event.DownloadChanged, ({ id, state }) => {
         this.updateDownload(id, state).catch(console.error);
       })
     );
     this.subscriptions.push(
-      TrackPlayer.addEventListener(Event.DownloadProgressChanged, ({ id, contentLength, bytesDownloaded, percentDownloaded }) => {
+      addEventListener(Event.DownloadProgressChanged, ({ id, contentLength, bytesDownloaded, percentDownloaded }) => {
         this.updateDownloadProgress(id, contentLength, bytesDownloaded, percentDownloaded).catch(console.error);
       })
     );
@@ -49,7 +51,7 @@ export class TrackPlayerDownloadManager {
       this.downloads.delete(id);
       this.notifyDownloadsChange();
     } else {
-      const download = await TrackPlayer.getDownload(id);
+      const download = await getDownload(id);
       if (!download) {
         this.downloads.delete(id);
       } else {
@@ -70,7 +72,7 @@ export class TrackPlayerDownloadManager {
   }
 
   private async load(): Promise<void> {
-    const downloads = await TrackPlayer.getDownloads();
+    const downloads = await getDownloads();
     this.downloads.clear();
     for (const download of downloads) {
       this.downloads.set(download.id, download);
@@ -78,21 +80,21 @@ export class TrackPlayerDownloadManager {
   }
 
   async clear(): Promise<void> {
-    await TrackPlayer.clearDownloads();
+    await clearDownloads();
     this.notifyDownloadsChange();
   }
 
   async setHeaders(headers: { [key: string]: string }): Promise<void> {
-    await TrackPlayer.setDownloadHeaders(headers);
+    await setDownloadHeaders(headers);
   }
 
   async download(requests: Array<DownloadRequest>): Promise<void> {
-    await TrackPlayer.addDownloads(requests);
+    await addDownloads(requests);
   }
 
   async remove(ids: Array<string>): Promise<void> {
     for (const id of ids) {
-      await TrackPlayer.removeDownload(id);
+      await removeDownload(id);
     }
     this.notifyDownloadsChange();
   }
@@ -132,103 +134,4 @@ export class TrackPlayerDownloadManager {
       listeners.forEach(update => update(download));
     }
   }
-
-}
-
-export function useTrackPlayerCurrentDownloadsCached(cache: TrackPlayerDownloadManager): Array<Download> | undefined {
-  const [data, setData] = useState<Array<Download> | undefined>(undefined);
-  const isUnmountedRef = useRef(true);
-
-  useEffect(() => {
-    isUnmountedRef.current = false;
-    return () => {
-      isUnmountedRef.current = true;
-    };
-  }, []);
-
-  useEffect(() => {
-
-    const refresh = (downloads?: Array<Download>): void => {
-      const ds = downloads ?
-        downloads.filter(d => d.state !== DownloadState.Completed)
-        : cache.getCurrentDownloads();
-      if (isUnmountedRef.current) {
-        return;
-      }
-      setData(ds);
-    };
-
-    cache.subscribeDownloadsChanges(refresh);
-    refresh();
-    return (): void => {
-      cache.unsubscribeDownloadsChanges(refresh);
-    };
-  }, [cache]);
-
-  return data;
-}
-
-export function useTrackPlayerDownloadCached(id: string, cache: TrackPlayerDownloadManager): Download | undefined {
-  const [data, setData] = useState<Download | undefined>(undefined);
-  const isUnmountedRef = useRef(true);
-
-  useEffect(() => {
-    isUnmountedRef.current = false;
-    return () => {
-      isUnmountedRef.current = true;
-    };
-  }, []);
-
-
-  useEffect(() => {
-    const refresh = (download?: Download): void => {
-      const d = download ? download : cache.getDownload(id);
-      if (isUnmountedRef.current) {
-        return;
-      }
-      setData(d);
-    };
-
-    cache.subscribeDownloadChange(id, refresh);
-    refresh();
-
-    return (): void => {
-      cache.unsubscribeDownloadChange(id, refresh);
-    };
-  }, [id, cache]);
-
-  return data;
-}
-
-export function useTrackPlayerDownloadsCached(cache: TrackPlayerDownloadManager): Array<Download> | undefined {
-  const [data, setData] = useState<Array<Download> | undefined>(undefined);
-  const isUnmountedRef = useRef(true);
-
-  useEffect(() => {
-    isUnmountedRef.current = false;
-    return () => {
-      isUnmountedRef.current = true;
-    };
-  }, []);
-
-  useEffect(() => {
-
-    const refresh = (downloads?: Array<Download>): void => {
-      const ds = downloads ?
-        downloads
-        : cache.getDownloads();
-      if (isUnmountedRef.current) {
-        return;
-      }
-      setData(ds);
-    };
-
-    cache.subscribeDownloadsChanges(refresh);
-    refresh();
-    return (): void => {
-      cache.unsubscribeDownloadsChanges(refresh);
-    };
-  }, [cache]);
-
-  return data;
 }

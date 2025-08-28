@@ -14,11 +14,20 @@ import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.facebook.react.bridge.*;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReactMethod;
+
 import androidx.media3.common.C;
 import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.offline.Download;
+
 import com.guichaguri.trackplayer.downloader.DownloadUtils;
 import com.guichaguri.trackplayer.service.MusicBinder;
 import com.guichaguri.trackplayer.service.MusicService;
@@ -32,16 +41,20 @@ import javax.annotation.Nullable;
 
 import java.util.*;
 
+import com.guichaguri.trackplayer.NativeTrackPlayerSpec;
+
 /**
  * @author Guichaguri
  */
-public class MusicModule extends ReactContextBaseJavaModule implements ServiceConnection {
-
+@ReactModule(name = MusicModule.NAME)
+public class MusicModule extends NativeTrackPlayerSpec implements ServiceConnection {
     private MusicBinder binder;
     private MusicEvents eventHandler;
     private ArrayDeque<Runnable> initCallbacks = new ArrayDeque<>();
     private boolean connecting = false;
     private Bundle options;
+
+    public static final String NAME = "TrackPlayer";
 
     public MusicModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -50,7 +63,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     @Override
     @Nonnull
     public String getName() {
-        return "TrackPlayerModule";
+        return NAME;
     }
 
     @Override
@@ -63,7 +76,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @Override
-    public void onCatalystInstanceDestroy() {
+    public void invalidate() {
         ReactContext context = getReactApplicationContext();
 
         if (eventHandler != null) {
@@ -72,6 +85,8 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
             manager.unregisterReceiver(eventHandler);
             eventHandler = null;
         }
+
+        super.invalidate();
     }
 
     @Override
@@ -124,7 +139,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
     @Nullable
     @Override
-    public Map<String, Object> getConstants() {
+    public Map<String, Object> getTypedExportedConstants() {
         Map<String, Object> constants = new HashMap<>();
 
         // Capabilities
@@ -140,6 +155,9 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
         constants.put("CAPABILITY_SET_RATING", PlaybackStateCompat.ACTION_SET_RATING);
         constants.put("CAPABILITY_JUMP_FORWARD", PlaybackStateCompat.ACTION_FAST_FORWARD);
         constants.put("CAPABILITY_JUMP_BACKWARD", PlaybackStateCompat.ACTION_REWIND);
+        constants.put("CAPABILITY_LIKE", -1);
+        constants.put("CAPABILITY_DISLIKE", -2);
+        constants.put("CAPABILITY_BOOKMARK", -3);
 
         // States
         constants.put("STATE_NONE", PlaybackStateCompat.STATE_NONE);
@@ -171,6 +189,10 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
         constants.put("REPEAT_OFF", Player.REPEAT_MODE_OFF);
         constants.put("REPEAT_TRACK", Player.REPEAT_MODE_ONE);
         constants.put("REPEAT_QUEUE", Player.REPEAT_MODE_ALL);
+
+        constants.put("PITCH_ALGORITHM_LINEAR", -1);
+        constants.put("PITCH_ALGORITHM_MUSIC", -2);
+        constants.put("PITCH_ALGORITHM_VOICE", -3);
 
         return constants;
     }
@@ -218,7 +240,8 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void add(ReadableArray tracks, final Integer insertBeforeIndex, final Promise callback) {
+    public void add(ReadableArray tracks, final double insertBeforeIndex, final Promise callback) {
+        final int insertBeforeIndexInt = (int) insertBeforeIndex;
         final ArrayList bundleList = Arguments.toList(tracks);
 
         waitForConnection(() -> {
@@ -233,7 +256,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
             List<Track> queue = binder.getPlayback().getQueue();
             // -1 means no index was passed and therefore should be inserted at the end.
-            int index = insertBeforeIndex != -1 ? insertBeforeIndex : queue.size();
+            int index = insertBeforeIndexInt != -1 ? insertBeforeIndexInt : queue.size();
 
             if (index < 0 || index > queue.size()) {
                 callback.reject("index_out_of_bounds", "The track index is out of bounds");
@@ -368,17 +391,19 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void updateMetadataForTrack(int index, ReadableMap map, final Promise callback) {
+    public void updateMetadataForTrack(final double index, ReadableMap map, final Promise callback) {
+        final int indexInt = (int) index;
+
         waitForConnection(() -> {
             ExoPlayback playback = binder.getPlayback();
             List<Track> queue = playback.getQueue();
 
-            if (index < 0 || index >= queue.size()) {
+            if (indexInt < 0 || indexInt >= queue.size()) {
                 callback.reject("index_out_of_bounds", "The index is out of bounds");
             } else {
-                Track track = queue.get(index);
+                Track track = queue.get(indexInt);
                 track.setMetadata(getReactApplicationContext(), Arguments.toBundle(map), binder.getRatingType());
-                playback.updateTrack(index, track);
+                playback.updateTrack(indexInt, track);
                 callback.resolve(null);
             }
         });
@@ -425,8 +450,9 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void skip(final int index, final Promise callback) {
-        waitForConnection(() -> binder.getPlayback().skip(index, callback));
+    public void skip(final double index, final Promise callback) {
+        final int indexInt = (int) index;
+        waitForConnection(() -> binder.getPlayback().skip(indexInt, callback));
     }
 
     @ReactMethod
@@ -472,7 +498,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void seekTo(final float seconds, final Promise callback) {
+    public void seekTo(final double seconds, final Promise callback) {
         waitForConnection(() -> {
             long secondsToSkip = Utils.toMillis(seconds);
             binder.getPlayback().seekTo(secondsToSkip);
@@ -481,9 +507,9 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void setVolume(final float volume, final Promise callback) {
+    public void setVolume(final double volume, final Promise callback) {
         waitForConnection(() -> {
-            binder.getPlayback().setVolume(volume);
+            binder.getPlayback().setVolume((float) volume);
             callback.resolve(null);
         });
     }
@@ -494,9 +520,10 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void setRepeatMode(int mode, final Promise callback) {
+    public void setRepeatMode(final double mode, final Promise callback) {
+        final int modeInt = (int) mode;
         waitForConnection(() -> {
-            binder.getPlayback().setRepeatMode(mode);
+            binder.getPlayback().setRepeatMode(modeInt);
             callback.resolve(null);
         });
     }
@@ -507,12 +534,13 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void getTrack(final int index, final Promise callback) {
+    public void getTrack(final double index, final Promise callback) {
+        final int indexInt = (int) index;
         waitForConnection(() -> {
             List<Track> tracks = binder.getPlayback().getQueue();
 
-            if (index >= 0 && index < tracks.size()) {
-                callback.resolve(Arguments.fromBundle(tracks.get(index).originalItem));
+            if (indexInt >= 0 && indexInt < tracks.size()) {
+                callback.resolve(Arguments.fromBundle(tracks.get(indexInt).originalItem));
             } else {
                 callback.resolve(null);
             }
@@ -602,16 +630,19 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void move(int index, int newIndex, final Promise callback) {
+    public void move(final double index, final double newIndex, final Promise callback) {
+        final int indexInt = (int) index;
+        final int newIndexInt = (int) newIndex;
+
         waitForConnection(() -> {
             ExoPlayback playback = binder.getPlayback();
             int size = playback.getQueue().size();
-            if (index < 0 || index >= size) {
+            if (indexInt < 0 || indexInt >= size) {
                 callback.reject("index_out_of_bounds", "The track index is out of bounds");
-            } else if (newIndex < 0 || newIndex >= size) {
+            } else if (newIndexInt < 0 || newIndexInt >= size) {
                 callback.reject("index_out_of_bounds", "The new index is out of bounds");
             } else {
-                playback.move(index, newIndex, callback);
+                playback.move(indexInt, newIndexInt, callback);
             }
             callback.resolve(null);
         });
@@ -657,27 +688,36 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
-    public void setPlaybackParameters(final float speed, final float pitch, final Promise callback) {
+    public void setPlaybackParameters(final double speed, final double pitch, final Promise callback) {
         waitForConnection(() -> {
-            binder.getPlayback().setPlaybackParameter(speed, pitch);
+            binder.getPlayback().setPlaybackParameter((float) speed, (float) pitch);
             callback.resolve(null);
         });
     }
 
     @ReactMethod
-    public void setPlaybackSpeed(final float speed, final Promise callback) {
+    public void setPlaybackSpeed(final double speed, final Promise callback) {
         waitForConnection(() -> {
-            binder.getPlayback().setPlaybackSpeed(speed);
+            binder.getPlayback().setPlaybackSpeed((float) speed);
             callback.resolve(null);
         });
     }
 
     @ReactMethod
-    public void setPlaybackPitch(final float pitch, final Promise callback) {
+    public void setPlaybackPitch(final double pitch, final Promise callback) {
         waitForConnection(() -> {
-            binder.getPlayback().setPlaybackPitch(pitch);
+            binder.getPlayback().setPlaybackPitch((float) pitch);
             callback.resolve(null);
         });
     }
 
+    @ReactMethod
+    public void addListener(String eventType) {
+      // Is must be defined otherwise the generated interface from TS won't be fulfilled
+    }
+
+    @ReactMethod
+    public void removeListeners(double id) {
+      // Is must be defined otherwise the generated interface from TS won't be fulfilled
+    }
 }

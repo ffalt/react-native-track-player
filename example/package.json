@@ -1,54 +1,44 @@
 {
   "name": "example",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
-    "postinstall": "rm -rf node_modules/react-native-track-player/{example,node_modules}",
+    "postinstall": "yarn run update:android && yarn run update:ios && yarn run update:lib && yarn run update:package",
+    "update:android": "yarn rimraf node_modules/react-native-track-player/android && yarn cpx '../android/**' node_modules/react-native-track-player/android && yarn rimraf node_modules/react-native-track-player/android/build",
+    "update:ios": "yarn rimraf node_modules/react-native-track-player/ios && yarn cpx '../ios/**' node_modules/react-native-track-player/ios && yarn rimraf node_modules/react-native-track-player/ios/generated",
+    "update:lib": "yarn rimraf node_modules/react-native-track-player/lib && yarn cpx '../lib/**' node_modules/react-native-track-player/lib",
+    "update:package": "yarn rimraf node_modules/react-native-track-player/package.json && yarn cpx '../package.json' node_modules/react-native-track-player/",
     "android": "react-native run-android && react-native log-android",
     "clean:gradle": "cd android && rm -Rf .gradle && rm -Rf app/build && ./gradlew clean",
     "ios": "react-native run-ios",
-    "lint": "eslint .",
-    "start": "react-native start",
-    "test": "jest",
-    "update": "yarn remove react-native-track-player && yarn add file:..",
-    "update:ios": "yarn rimraf node_modules/react-native-track-player/ios && yarn cpx '../ios/**' node_modules/react-native-track-player/ios",
-    "update:android": "yarn rimraf node_modules/react-native-track-player/android && yarn cpx '../android/**' node_modules/react-native-track-player/android",
-    "update:lib": "yarn rimraf node_modules/react-native-track-player/lib && yarn cpx '../lib/**' node_modules/react-native-track-player/lib",
-    "sync:ios": "yarn rimraf ../ios && yarn cpx 'node_modules/react-native-track-player/ios/**' ../ios",
-    "sync:android": "yarn rimraf ../android && yarn cpx 'node_modules/react-native-track-player/android/**' ../android",
-    "sync": "yarn sync:ios && yarn sync:android"
+    "start": "react-native start"
   },
   "dependencies": {
     "react": "19.1.0",
-    "react-native": "0.80.0",
-    "react-native-safe-area-context": "^5.4.1",
-    "react-native-screens": "^4.11.1",
-    "react-native-track-player": "file:.."
+    "react-native": "0.80.2",
+    "react-native-safe-area-context": "^5.6.1",
+    "react-native-screens": "4.15.4",
+    "rimraf": "^6.0.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.27.4",
-    "@babel/preset-env": "^7.27.2",
-    "@babel/runtime": "^7.27.6",
-    "@react-native-community/slider": "4.5.7",
-    "@react-native/babel-preset": "0.80.0",
-    "@react-native/eslint-config": "0.80.0",
-    "@react-native/metro-config": "0.80.0",
-    "@react-native/typescript-config": "0.80.0",
-    "@react-navigation/bottom-tabs": "7.3.17",
-    "@react-navigation/native": "7.1.13",
-    "@react-native-community/cli": "19.0.0",
-    "@react-native-community/cli-platform-android": "19.0.0",
+    "@babel/core": "^7.28.3",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/runtime": "^7.28.3",
+    "@react-native-community/cli": "20.0.1",
+    "@react-native-community/cli-platform-android": "20.0.1",
+    "@react-native-community/slider": "5.0.1",
+    "@react-native/babel-preset": "0.81.1",
+    "@react-native/metro-config": "0.81.1",
+    "@react-native/typescript-config": "0.81.1",
+    "@react-navigation/bottom-tabs": "7.4.6",
+    "@react-navigation/native": "7.1.17",
     "@types/react": "^19.1.8",
     "@types/react-test-renderer": "^19.1.0",
-    "babel-jest": "^30.0.2",
     "cpx": "^1.5.0",
-    "eslint": "^9.29.0",
-    "jest": "^30.0.2",
-    "prettier": "3.5.3",
-    "react-test-renderer": "19.1.0",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   },
   "engines": {
-    "node": ">=20"
-  }
+    "node": ">=22"
+  },
+  "packageManager": "yarn@4.9.4"
 }

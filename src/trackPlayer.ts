@@ -1,520 +1,445 @@
-import { Platform, AppRegistry, DeviceEventEmitter, NativeEventEmitter, NativeModules } from 'react-native';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import * as resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
-import {
-  MetadataOptions,
-  PlayerOptions,
-  Track,
-  State,
-  TrackMetadataBase,
-  NowPlayingMetadata,
-  RepeatMode, DownloadRequest, Download, PlaybackParameters, EventMap
-} from './interfaces';
+import { AppRegistry, NativeEventEmitter, Platform } from "react-native";
+import TrackPlayer from "./NativeTrackPlayer";
+import { resolveImportedAssetOrPath } from "./helper/resolveImportedAssetOrPath";
 
-const { TrackPlayerModule: TrackPlayer } = NativeModules;
-const emitter = Platform.OS !== 'android' ? new NativeEventEmitter(TrackPlayer) : DeviceEventEmitter;
+import { type PlayerOptions } from "./interfaces/PlayerOptions";
+import { type ServiceHandler } from "./interfaces/ServiceHandler";
+import { type MetadataOptions } from "./interfaces/MetadataOptions";
+import { type NowPlayingMetadata } from "./interfaces/NowPlayingMetadata";
+import { type Download } from "./interfaces/Download";
+import { type DownloadRequest } from "./interfaces/DownloadRequest";
+import { type EventPayloadByEvent } from "./interfaces/EventPayloadByEvent";
+import { type PlaybackParameters } from "./interfaces/PlaybackParameters";
+import { type Track } from "./interfaces/Track";
+import { type TrackMetadataBase } from "./interfaces/TrackMetadataBase";
+import { type AddTrack } from "./interfaces/AddTrack";
 
-// MARK: - Helpers
+import { RepeatMode } from "./constants/RepeatMode";
+import { State } from "./constants/State";
+import { Event } from "./constants/Event";
 
-function resolveImportedPath(path?: number | string) {
-  if (!path) {return undefined;}
-  return resolveAssetSource.default(path) || path;
-}
-
-// MARK: - General API
+const isAndroid = Platform.OS === "android";
+const emitter = new NativeEventEmitter(TrackPlayer);
 
 /**
  * Initializes the player with the specified options.
  */
-async function setupPlayer(options: PlayerOptions = {}): Promise<void> {
-  return TrackPlayer.setupPlayer(options || {});
+export async function setupPlayer(options: PlayerOptions = {}): Promise<void> {
+  return TrackPlayer.setupPlayer(options);
 }
-
-/**
- * Destroys the player, cleaning up its resources.
- */
-function destroy() {
-  return TrackPlayer.destroy();
-}
-
-type ServiceHandler = () => Promise<void>
 
 /**
  * Register the playback service. The service will run as long as the player runs.
  */
-function registerPlaybackService(factory: () => ServiceHandler) {
-  if (Platform.OS === 'android') {
+export function registerPlaybackService(factory: () => ServiceHandler) {
+  if (isAndroid) {
     // Registers the headless task
-    AppRegistry.registerHeadlessTask('TrackPlayer', factory);
+    AppRegistry.registerHeadlessTask("TrackPlayer", factory);
   } else {
     // Initializes and runs the service in the next tick
     setImmediate(factory());
   }
 }
 
-function addEventListener<E extends keyof EventMap>(event: E, listener: (data: EventMap[E]) => void) {
-  return emitter.addListener(event, listener);
+/**
+ * Destroys the player, cleaning up its resources.
+ */
+export function destroy(): void {
+  return TrackPlayer.destroy();
 }
 
-function isServiceRunning(): Promise<boolean> {
-  return TrackPlayer.isServiceRunning();
+/**
+ * is the track player already started
+ */
+export async function isServiceRunning(): Promise<boolean> {
+  return await TrackPlayer.isServiceRunning();
 }
 
-// MARK: - Queue API
+/**
+ * add an event listener
+ */
+export function addEventListener<T extends Event>(
+  event: T,
+  listener: EventPayloadByEvent[T] extends never
+    ? () => void
+    : (event: EventPayloadByEvent[T]) => void
+) {
+  return emitter.addListener(event, listener as unknown as (event: any) => void);
+}
 
 /**
  * Adds one or more tracks to the queue.
  */
-async function add(tracks: Track | Track[], insertBeforeIndex?: number): Promise<void> {
-  // Clone the array before modifying it
-  if (Array.isArray(tracks)) {
-    tracks = [...tracks];
-  } else {
-    tracks = [tracks];
-  }
-
-  if (tracks.length < 1) {return;}
-
-  for (let i = 0; i < tracks.length; i++) {
-    // Clone the object before modifying it
-    tracks[i] = { ...tracks[i] };
-
-    // Resolve the URLs
-    tracks[i].url = resolveImportedPath(tracks[i].url);
-    tracks[i].artwork = resolveImportedPath(tracks[i].artwork);
-  }
-
-  // Note: we must be careful about passing nulls to non nullable parameters on Android.
-  return TrackPlayer.add(tracks, insertBeforeIndex === undefined ? -1 : insertBeforeIndex);
+export async function add(tracks: AddTrack | AddTrack[], insertBeforeIndex?: number): Promise<void> {
+  const resolvedTracks = (Array.isArray(tracks) ? tracks : [tracks]).map(
+    (track) => ({
+      ...track,
+      url: resolveImportedAssetOrPath(track.url),
+      artwork: resolveImportedAssetOrPath(track.artwork)
+    })
+  );
+  return resolvedTracks.length < 1
+    ? undefined
+    : await TrackPlayer.add(resolvedTracks, insertBeforeIndex === undefined ? -1 : insertBeforeIndex);
 }
 
 /**
  * Removes one or more tracks from the queue.
  */
-async function remove(tracks: number | number[]): Promise<void> {
-  if (!Array.isArray(tracks)) {
-    tracks = [tracks];
-  }
-
-  return TrackPlayer.remove(tracks);
+export async function remove(indexOrIndexes: number | number[]): Promise<void> {
+  return await TrackPlayer.remove(Array.isArray(indexOrIndexes) ? indexOrIndexes : [indexOrIndexes]);
 }
 
 /**
  * Clears any upcoming tracks from the queue.
  */
-async function removeUpcomingTracks(): Promise<void> {
-  return TrackPlayer.removeUpcomingTracks();
+export async function removeUpcomingTracks(): Promise<void> {
+  return await TrackPlayer.removeUpcomingTracks();
 }
 
 /**
  * Skips to a track in the queue.
  */
-async function skip(trackIndex: number): Promise<void> {
-  return TrackPlayer.skip(trackIndex);
+export async function skip(trackIndex: number): Promise<void> {
+  return await TrackPlayer.skip(trackIndex);
 }
 
 /**
  * Skips to the next track in the queue.
  */
-async function skipToNext(): Promise<void> {
-  return TrackPlayer.skipToNext();
+export async function skipToNext(): Promise<void> {
+  return await TrackPlayer.skipToNext();
 }
 
 /**
  * Skips to the previous track in the queue.
  */
-async function skipToPrevious(): Promise<void> {
-  return TrackPlayer.skipToPrevious();
+export async function skipToPrevious(): Promise<void> {
+  return await TrackPlayer.skipToPrevious();
 }
-
-// MARK: - Control Center / Notifications API
 
 /**
  * Updates the configuration for the components.
  */
-async function updateOptions(options: MetadataOptions = {}): Promise<void> {
-  options = { ...options };
-
-  // Resolve the asset for each icon
-  options.icon = resolveImportedPath(options.icon);
-  options.playIcon = resolveImportedPath(options.playIcon);
-  options.pauseIcon = resolveImportedPath(options.pauseIcon);
-  options.stopIcon = resolveImportedPath(options.stopIcon);
-  options.previousIcon = resolveImportedPath(options.previousIcon);
-  options.nextIcon = resolveImportedPath(options.nextIcon);
-  options.rewindIcon = resolveImportedPath(options.rewindIcon);
-  options.forwardIcon = resolveImportedPath(options.forwardIcon);
-
-  return TrackPlayer.updateOptions(options);
+export async function updateOptions(options: MetadataOptions = {}): Promise<void> {
+  options = {
+    ...options,
+    icon: resolveImportedAssetOrPath(options.icon),
+    playIcon: resolveImportedAssetOrPath(options.playIcon),
+    pauseIcon: resolveImportedAssetOrPath(options.pauseIcon),
+    stopIcon: resolveImportedAssetOrPath(options.stopIcon),
+    previousIcon: resolveImportedAssetOrPath(options.previousIcon),
+    nextIcon: resolveImportedAssetOrPath(options.nextIcon),
+    rewindIcon: resolveImportedAssetOrPath(options.rewindIcon),
+    forwardIcon: resolveImportedAssetOrPath(options.forwardIcon)
+  };
+  return await TrackPlayer.updateOptions(options);
 }
 
 /**
  * Updates the metadata of a track in the queue. If the current track is updated,
  * the notification and the Now Playing Center will be updated accordingly.
  */
-async function updateMetadataForTrack(trackIndex: number, metadata: TrackMetadataBase): Promise<void> {
-  // Clone the object before modifying it
-  metadata = Object.assign({}, metadata);
-
-  // Resolve the artwork URL
-  metadata.artwork = resolveImportedPath(metadata.artwork);
-
-  return TrackPlayer.updateMetadataForTrack(trackIndex, metadata);
+export async function updateMetadataForTrack(trackIndex: number, metadata: TrackMetadataBase): Promise<void> {
+  return await TrackPlayer.updateMetadataForTrack(trackIndex, {
+    ...metadata,
+    artwork: resolveImportedAssetOrPath(metadata.artwork)
+  });
 }
 
-function clearNowPlayingMetadata(): Promise<void> {
-  return TrackPlayer.clearNowPlayingMetadata();
+/**
+ * clear NowPlaying Metadata
+ */
+export async function clearNowPlayingMetadata(): Promise<void> {
+  return await TrackPlayer.clearNowPlayingMetadata();
 }
 
-function updateNowPlayingMetadata(metadata: NowPlayingMetadata): Promise<void> {
-  // Clone the object before modifying it
-  metadata = Object.assign({}, metadata);
-
-  // Resolve the artwork URL
-  metadata.artwork = resolveImportedPath(metadata.artwork);
-
-  return TrackPlayer.updateNowPlayingMetadata(metadata);
+/**
+ * Updates the metadata of a NowPlaying track
+ */
+export async function updateNowPlayingMetadata(metadata: NowPlayingMetadata): Promise<void> {
+  return await TrackPlayer.updateNowPlayingMetadata({
+    ...metadata,
+    artwork: resolveImportedAssetOrPath(metadata.artwork)
+  });
 }
-
-// MARK: - Player API
 
 /**
  * Resets the player stopping the current track and clearing the queue.
  */
-async function reset(): Promise<void> {
-  return TrackPlayer.reset();
+export async function reset(): Promise<void> {
+  return await TrackPlayer.reset();
 }
 
 /**
  * Plays or resumes the current track.
  */
-async function play(): Promise<void> {
-  return TrackPlayer.play();
+export async function play(): Promise<void> {
+  return await TrackPlayer.play();
 }
 
 /**
  * Pauses the current track.
  */
-async function pause(): Promise<void> {
-  return TrackPlayer.pause();
+export async function pause(): Promise<void> {
+  return await TrackPlayer.pause();
 }
 
 /**
  * Stops the current track.
  */
-async function stop(): Promise<void> {
-  return TrackPlayer.stop();
+export async function stop(): Promise<void> {
+  return await TrackPlayer.stop();
 }
 
 /**
  * Seeks to a specified time position in the current track.
  */
-async function seekTo(position: number): Promise<void> {
-  return TrackPlayer.seekTo(position);
+export async function seekTo(position: number): Promise<void> {
+  return await TrackPlayer.seekTo(position);
 }
 
 /**
  * Sets the volume of the player.
  */
-async function setVolume(level: number): Promise<void> {
-  return TrackPlayer.setVolume(level);
+export async function setVolume(level: number): Promise<void> {
+  return await TrackPlayer.setVolume(level);
 }
 
 /**
  * Sets the repeat mode.
  */
-async function setRepeatMode(mode: RepeatMode): Promise<RepeatMode> {
-  return TrackPlayer.setRepeatMode(mode);
+export async function setRepeatMode(mode: RepeatMode): Promise<void> {
+  return await TrackPlayer.setRepeatMode(mode);
 }
-
-// MARK: - Getters
 
 /**
  * Gets the volume of the player (a number between 0 and 1).
  */
-async function getVolume(): Promise<number> {
-  return TrackPlayer.getVolume();
+export async function getVolume(): Promise<number> {
+  return await TrackPlayer.getVolume();
 }
 
 /**
  * Gets a track object from the queue.
  */
-async function getTrack(trackIndex: number): Promise<Track | null> {
-  return TrackPlayer.getTrack(trackIndex);
+export async function getTrack(trackIndex: number): Promise<Track | null> {
+  return await TrackPlayer.getTrack(trackIndex) as unknown as Track;
 }
 
 /**
  * Gets the whole queue.
  */
-async function getQueue(): Promise<Track[]> {
-  return TrackPlayer.getQueue();
+export async function getQueue(): Promise<Track[]> {
+  return await TrackPlayer.getQueue() as unknown as Track[];
 }
 
 /**
  * Gets the index of the current track.
  */
-async function getCurrentTrack(): Promise<number> {
-  return TrackPlayer.getCurrentTrack();
+export async function getCurrentTrack(): Promise<number | undefined> {
+  return await TrackPlayer.getCurrentTrack() ?? undefined;
 }
 
 /**
  * Gets the duration of the current track in seconds.
  */
-async function getDuration(): Promise<number> {
-  return TrackPlayer.getDuration();
+export async function getDuration(): Promise<number> {
+  return await TrackPlayer.getDuration();
 }
 
 /**
  * Gets the buffered position of the player in seconds.
  */
-async function getBufferedPosition(): Promise<number> {
-  return TrackPlayer.getBufferedPosition();
+export async function getBufferedPosition(): Promise<number> {
+  return await TrackPlayer.getBufferedPosition();
 }
 
 /**
  * Gets the position of the player in seconds.
  */
-async function getPosition(): Promise<number> {
-  return TrackPlayer.getPosition();
+export async function getPosition(): Promise<number> {
+  return await TrackPlayer.getPosition();
 }
 
 /**
  * Gets the state of the player.
  */
-async function getState(): Promise<State> {
-  return TrackPlayer.getState();
+export async function getState(): Promise<State> {
+  return await TrackPlayer.getState();
 }
 
 /**
  * Gets the repeat mode.
  */
-async function getRepeatMode(): Promise<RepeatMode> {
-  return TrackPlayer.getRepeatMode();
+export async function getRepeatMode(): Promise<RepeatMode> {
+  return await TrackPlayer.getRepeatMode();
 }
 
 /**
  * Moves an item in the queue.
  */
-async function move(index: number, newIndex: number): Promise<void> {
-  return TrackPlayer.move(index, newIndex);
+export async function move(index: number, newIndex: number): Promise<void> {
+  return await TrackPlayer.move(index, newIndex);
 }
 
 /**
  * Shuffle the queue.
  */
-async function shuffle(): Promise<void> {
-  return TrackPlayer.shuffle();
+export async function shuffle(): Promise<void> {
+  return await TrackPlayer.shuffle();
 }
 
 /**
  * Clear the queue.
  */
-async function clear(): Promise<void> {
-  return TrackPlayer.clear();
+export async function clear(): Promise<void> {
+  return await TrackPlayer.clear();
 }
 
 /**
  * Gets the shuffle mode.
  */
-async function getShuffleModeEnabled(): Promise<boolean> {
-  return TrackPlayer.getShuffleModeEnabled();
+export async function getShuffleModeEnabled(): Promise<boolean> {
+  return await TrackPlayer.getShuffleModeEnabled();
 }
 
 /**
  * Sets the shuffle mode.
  */
-async function setShuffleModeEnabled(enabled: boolean): Promise<boolean> {
-  return TrackPlayer.setShuffleModeEnabled(enabled);
+export async function setShuffleModeEnabled(enabled: boolean): Promise<void> {
+  return await TrackPlayer.setShuffleModeEnabled(enabled);
 }
 
 /**
  * Adds download requests.
  */
-async function addDownloads(requests: DownloadRequest[]): Promise<void> {
-  return TrackPlayer.addDownloads(requests);
+export async function addDownloads(requests: DownloadRequest[]): Promise<void> {
+  return await TrackPlayer.addDownloads(requests);
 }
 
 /**
  * Remove all downloads.
  */
-async function clearDownloads(): Promise<void> {
-  return TrackPlayer.clearDownloads();
+export async function clearDownloads(): Promise<void> {
+  return await TrackPlayer.clearDownloads();
 }
 
 /**
  * Gets all downloads.
  */
-async function getDownloadsPaused(): Promise<boolean> {
-  return TrackPlayer.getDownloadsPaused();
+export async function getDownloadsPaused(): Promise<boolean> {
+  return await TrackPlayer.getDownloadsPaused();
 }
 
 /**
  * Gets all downloads.
  */
-async function getDownloads(): Promise<Download[]> {
-  return TrackPlayer.getDownloads();
+export async function getDownloads(): Promise<Download[]> {
+  return await TrackPlayer.getDownloads() as unknown as Download[];
 }
 
 /**
  * Gets all current downloads.
  */
-async function getCurrentDownloads(): Promise<Download[]> {
-  return TrackPlayer.getCurrentDownloads();
+export async function getCurrentDownloads(): Promise<Download[]> {
+  return await TrackPlayer.getCurrentDownloads() as unknown as Download[];
 }
 
 /**
  * Set the request headers.
  */
-async function setDownloadHeaders(header: { [key: string]: string }): Promise<void> {
+export async function setDownloadHeaders(header: { [key: string]: string }): Promise<void> {
   return TrackPlayer.setDownloadHeaders(header);
 }
 
 /**
- * Gets an download by id.
+ * Gets a download by id.
  */
-async function getDownload(id: string): Promise<Download | undefined> {
-  return TrackPlayer.getDownload(id);
+export async function getDownload(id: string): Promise<Download | undefined> {
+  return (await TrackPlayer.getDownload(id) as unknown as Download) ?? undefined;
 }
 
 /**
- * Removes an download by id.
+ * Removes a download by id.
  */
-async function removeDownload(id: string): Promise<Download | undefined> {
-  return TrackPlayer.removeDownload(id);
+export async function removeDownload(id: string): Promise<void> {
+  return await TrackPlayer.removeDownload(id);
 }
 
 /**
  * Toggle downloading.
  */
-async function toggleDownloadsPaused(): Promise<void> {
-  return TrackPlayer.toggleDownloadsPaused();
+export async function toggleDownloadsPaused(): Promise<void> {
+  return await TrackPlayer.toggleDownloadsPaused();
 }
 
 /**
  * Resume downloading.
  */
-async function resumeDownloads(): Promise<void> {
-  return TrackPlayer.resumeDownloads();
+export async function resumeDownloads(): Promise<void> {
+  return await TrackPlayer.resumeDownloads();
 }
 
 /**
  * Pause downloading.
  */
-async function pauseDownloads(): Promise<void> {
-  return TrackPlayer.pauseDownloads();
+export async function pauseDownloads(): Promise<void> {
+  return await TrackPlayer.pauseDownloads();
 }
 
 /**
  * Gets Playback Parameters.
  */
-async function getPlaybackParameters(): Promise<PlaybackParameters> {
-  return TrackPlayer.getPlaybackParameters();
+export async function getPlaybackParameters(): Promise<PlaybackParameters> {
+  return await TrackPlayer.getPlaybackParameters() as unknown as PlaybackParameters;
 }
 
 /**
  * Sets Playback Parameters.
  */
-async function setPlaybackParameters(paybackParameters: PlaybackParameters): Promise<void> {
-  return TrackPlayer.setPlaybackParameters(paybackParameters);
+export async function setPlaybackParameters(speed: number, pitch: number): Promise<void> {
+  return await TrackPlayer.setPlaybackParameters(speed, pitch);
 }
 
 /**
  * Gets Playback Speed.
  */
-async function getPlaybackSpeed(): Promise<number> {
-  return TrackPlayer.getPlaybackSpeed();
+export async function getPlaybackSpeed(): Promise<number> {
+  return await TrackPlayer.getPlaybackSpeed();
 }
 
 /**
  * Sets Playback Speed.
  */
-async function setPlaybackSpeed(speed: number): Promise<void> {
-  return TrackPlayer.setPlaybackSpeed(speed);
+export async function setPlaybackSpeed(speed: number): Promise<void> {
+  return await TrackPlayer.setPlaybackSpeed(speed);
 }
 
 /**
  * Gets Playback Pitch.
  */
-async function getPlaybackPitch(): Promise<number> {
-  return TrackPlayer.getPlaybackPitch();
+export async function getPlaybackPitch(): Promise<number> {
+  return await TrackPlayer.getPlaybackPitch();
 }
 
 /**
  * Sets Playback Pitch.
  */
-async function setPlaybackPitch(pitch: number): Promise<void> {
-  return TrackPlayer.setPlaybackPitch(pitch);
+export async function setPlaybackPitch(pitch: number): Promise<void> {
+  return await TrackPlayer.setPlaybackPitch(pitch);
 }
 
 /**
  * Gets the next item (with respecting shuffle mode)
  */
-async function hasNext(): Promise<boolean> {
-  return TrackPlayer.hasNext();
+export async function hasNext(): Promise<boolean> {
+  return await TrackPlayer.hasNext();
 }
 
 /**
  * Gets the previous item (with respecting shuffle mode)
  */
-async function hasPrevious(): Promise<boolean> {
-  return TrackPlayer.hasPrevious();
+export async function hasPrevious(): Promise<boolean> {
+  return await TrackPlayer.hasPrevious();
 }
-
-export default {
-  add,
-  addDownloads,
-  addEventListener,
-  clear,
-  clearDownloads,
-  clearNowPlayingMetadata,
-  destroy,
-  getBufferedPosition,
-  getCurrentDownloads,
-  getCurrentTrack,
-  getDownload,
-  getDownloads,
-  getDownloadsPaused,
-  getDuration,
-  getPlaybackParameters,
-  getPlaybackPitch,
-  getPlaybackSpeed,
-  getPosition,
-  getQueue,
-  getRepeatMode,
-  getShuffleModeEnabled,
-  getState,
-  getTrack,
-  getVolume,
-  hasNext,
-  hasPrevious,
-  isServiceRunning,
-  move,
-  pause,
-  pauseDownloads,
-  play,
-  registerPlaybackService,
-  remove,
-  removeDownload,
-  removeUpcomingTracks,
-  reset,
-  resumeDownloads,
-  seekTo,
-  setDownloadHeaders,
-  setPlaybackParameters,
-  setPlaybackPitch,
-  setPlaybackSpeed,
-  setRepeatMode,
-  setShuffleModeEnabled,
-  setVolume,
-  setupPlayer,
-  shuffle,
-  skip,
-  skipToNext,
-  skipToPrevious,
-  stop,
-  toggleDownloadsPaused,
-  updateMetadataForTrack,
-  updateNowPlayingMetadata,
-  updateOptions
-};
