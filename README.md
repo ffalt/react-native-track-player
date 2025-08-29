@@ -1,6 +1,6 @@
 # react-native-track-player
 
-Frankenfork of [react-native-kit/react-native-track-player](https://github.com/react-native-kit/react-native-track-player)
+Frankenfork of <https://github.com/doublesymmetry/react-native-track-player>
 
 based on 2.1.3
 
@@ -21,3 +21,4 @@ Extra:
 * New Event: Download List Changed, Download State Change, Download Progress Change
 * New example app
 * lots of useful hooks
+* react native new architecture
