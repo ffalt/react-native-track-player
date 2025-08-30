@@ -9,7 +9,11 @@
         "!android/build",
         "src/*.ts",
         "src/*.tsx",
-        "!example"
+        "example/package.json",
+        "example/android",
+        "!example/android/.gradle",
+        "!example/android/build",
+        "!example/android/app/build"
       ],
       "outputs": []
     },
@@ -21,7 +25,10 @@
         "ios",
         "src/*.ts",
         "src/*.tsx",
-        "!example"
+        "example/package.json",
+        "example/ios",
+        "!example/ios/build",
+        "!example/ios/Pods"
       ],
       "outputs": []
     }

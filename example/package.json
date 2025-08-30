@@ -3,27 +3,21 @@
   "version": "0.0.2",
   "private": true,
   "scripts": {
-    "postinstall": "yarn run update:android && yarn run update:ios && yarn run update:lib && yarn run update:package",
-    "update:android": "yarn rimraf node_modules/react-native-track-player/android && yarn cpx '../android/**' node_modules/react-native-track-player/android && yarn rimraf node_modules/react-native-track-player/android/build",
-    "update:ios": "yarn rimraf node_modules/react-native-track-player/ios && yarn cpx '../ios/**' node_modules/react-native-track-player/ios && yarn rimraf node_modules/react-native-track-player/ios/generated",
-    "update:lib": "yarn rimraf node_modules/react-native-track-player/lib && yarn cpx '../lib/**' node_modules/react-native-track-player/lib",
-    "update:package": "yarn rimraf node_modules/react-native-track-player/package.json && yarn cpx '../package.json' node_modules/react-native-track-player/",
-    "android": "react-native run-android && react-native log-android",
-    "clean:gradle": "cd android && rm -Rf .gradle && rm -Rf app/build && ./gradlew clean",
+    "start": "react-native start",
+    "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "start": "react-native start"
+    "clean:gradle": "cd android && rm -Rf .gradle && rm -Rf app/build && ./gradlew clean"
   },
   "dependencies": {
     "react": "19.1.0",
-    "react-native": "0.80.2",
-    "react-native-safe-area-context": "^5.6.1",
-    "react-native-screens": "4.15.4",
-    "rimraf": "^6.0.1"
+    "react-native": "0.81.1",
+    "react-native-safe-area-context": "5.6.1",
+    "react-native-screens": "4.15.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.3",
-    "@babel/preset-env": "^7.28.3",
-    "@babel/runtime": "^7.28.3",
+    "@babel/core": "7.28.3",
+    "@babel/preset-env": "7.28.3",
+    "@babel/runtime": "7.28.3",
     "@react-native-community/cli": "20.0.1",
     "@react-native-community/cli-platform-android": "20.0.1",
     "@react-native-community/slider": "5.0.1",
@@ -32,9 +26,12 @@
     "@react-native/typescript-config": "0.81.1",
     "@react-navigation/bottom-tabs": "7.4.6",
     "@react-navigation/native": "7.1.17",
-    "@types/react": "^19.1.8",
-    "@types/react-test-renderer": "^19.1.0",
-    "cpx": "^1.5.0",
+    "@types/react": "19.1.8",
+    "@types/react-test-renderer": "19.1.0",
+    "cpx": "1.5.0",
+    "react-native-builder-bob": "0.40.13",
+    "react-native-monorepo-config": "0.1.9",
+    "rimraf": "6.0.1",
     "typescript": "5.9.2"
   },
   "engines": {

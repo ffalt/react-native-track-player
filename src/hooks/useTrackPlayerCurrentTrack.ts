@@ -40,13 +40,10 @@ export function useTrackPlayerCurrentTrack(): Track | undefined {
       .catch(console.error);
   }, [trackNr]);
 
-  useEffect(() => {
-    refresh();
-  }, [trackNr]);
+  useEffect(() => refresh(), [refresh, trackNr]);
 
-  useEffect(() => {
-    refresh();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => refresh(), []);
 
   return track;
 }

@@ -34,6 +34,7 @@ export function useTrackPlayerDataEvents<T, S = void>(events: Array<Event>, hand
       .catch(console.error);
   }, [compareFunc, data, handler]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => refresh(), []);
   useTrackPlayerEvents(events, refresh);
 
